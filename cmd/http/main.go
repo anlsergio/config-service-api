@@ -3,12 +3,15 @@ package main
 import (
 	"github.com/gorilla/mux"
 	"github.com/hellofreshdevtests/HFtest-platform-anlsergio/internal/controller"
+	"github.com/hellofreshdevtests/HFtest-platform-anlsergio/internal/repository"
+	"github.com/hellofreshdevtests/HFtest-platform-anlsergio/internal/service"
 	"log"
 	"net/http"
 )
 
 func main() {
-	configController := controller.Config{}
+	svc := service.NewConfig(repository.NewInMemoryConfig())
+	configController := controller.NewConfig(svc)
 
 	r := mux.NewRouter()
 	configController.SetRouter(r)

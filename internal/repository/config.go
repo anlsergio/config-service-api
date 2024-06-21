@@ -26,9 +26,33 @@ type Config interface {
 }
 
 // NewInMemoryConfig returns a InMemoryConfig repository instance.
-func NewInMemoryConfig() Config {
-	return &InMemoryConfig{
-		configs: make(map[string]domain.Config),
+// Use InMemoryOption options to use custom settings.
+func NewInMemoryConfig(opts ...InMemoryOption) Config {
+	c := &InMemoryConfig{}
+
+	// apply options sent by the user if there's any.
+	for _, opt := range opts {
+		opt(c)
+	}
+
+	// if no custom data is provided
+	// initialize the configs datasource.
+	if c.configs == nil {
+		c.configs = make(map[string]domain.Config)
+	}
+
+	return c
+}
+
+// InMemoryOption defines the optional params for the
+// NewInMemoryConfig constructor.
+type InMemoryOption func(c *InMemoryConfig)
+
+// WithCustomData allows one to set custom data to initialize
+// the InMemoryConfig repository.
+func WithCustomData(configs map[string]domain.Config) InMemoryOption {
+	return func(c *InMemoryConfig) {
+		c.configs = configs
 	}
 }
 
@@ -38,8 +62,13 @@ type InMemoryConfig struct {
 }
 
 func (i *InMemoryConfig) List() (config []domain.Config, error error) {
-	//TODO implement me
-	panic("implement me")
+	var configs []domain.Config
+
+	for _, c := range i.configs {
+		configs = append(configs, c)
+	}
+
+	return configs, nil
 }
 
 func (i *InMemoryConfig) Save(config []domain.Config) error {

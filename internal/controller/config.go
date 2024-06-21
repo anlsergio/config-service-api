@@ -49,6 +49,8 @@ func (c Config) list(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 
+	// convert the configs slice into a json byte array
+	// so that it can be written as a JSON response back to the requester.
 	bytes, err := json.Marshal(configs)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
