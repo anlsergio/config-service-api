@@ -7,6 +7,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/hellofreshdevtests/HFtest-platform-anlsergio/internal/controller"
 	"github.com/hellofreshdevtests/HFtest-platform-anlsergio/internal/domain"
+	"github.com/hellofreshdevtests/HFtest-platform-anlsergio/internal/repository"
 	"github.com/hellofreshdevtests/HFtest-platform-anlsergio/internal/repository/mocks"
 	"github.com/hellofreshdevtests/HFtest-platform-anlsergio/internal/service"
 	"github.com/stretchr/testify/assert"
@@ -18,12 +19,34 @@ import (
 
 func TestConfig(t *testing.T) {
 	t.Run("list configs", func(t *testing.T) {
-		t.Run("listing is successful", func(t *testing.T) {
-			mockRepo := mocks.NewConfig(t)
-			stubs := generateConfigListStubs(t)
-			mockRepo.On("List").Return(stubs, nil)
+		customData := map[string]domain.Config{
+			"config 1": {
+				Name: "config 1",
+				Metadata: []byte(`
+				"foo": "bar",
+				"abc": 123,
+				"obj": {
+					"aaa": "bbb",
+				},
+			`),
+			},
+			"config 2": {
+				Name: "config 2",
+				Metadata: []byte(`
+				"enabled": "true",
+				"abc": 123,
+				"obj": {
+					"aaa": {
+						"bbb": "ccc"
+					},
+				},
+			`),
+			},
+		}
 
-			svc := service.NewConfig(mockRepo)
+		t.Run("listing is successful", func(t *testing.T) {
+			repo := repository.NewInMemoryConfig(repository.WithCustomData(customData))
+			svc := service.NewConfig(repo)
 			configController := controller.NewConfig(svc)
 
 			r := mux.NewRouter()
@@ -38,7 +61,7 @@ func TestConfig(t *testing.T) {
 			})
 
 			t.Run("it returns the expected number of configs", func(t *testing.T) {
-				wantLen := len(stubs)
+				wantLen := len(customData)
 
 				var responseConfigs []domain.Config
 				err := json.Unmarshal(rr.Body.Bytes(), &responseConfigs)
