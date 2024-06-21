@@ -1,30 +1,79 @@
 package controller_test
 
 import (
+	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/hellofreshdevtests/HFtest-platform-anlsergio/internal/controller"
+	"github.com/hellofreshdevtests/HFtest-platform-anlsergio/internal/domain"
+	"github.com/hellofreshdevtests/HFtest-platform-anlsergio/internal/repository/mocks"
+	"github.com/hellofreshdevtests/HFtest-platform-anlsergio/internal/service"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 )
 
 func TestConfig(t *testing.T) {
-	configController := controller.NewConfig()
-
-	r := mux.NewRouter()
-	configController.SetRouter(r)
-
 	t.Run("list configs", func(t *testing.T) {
-		req := httptest.NewRequest(http.MethodGet, "/configs", nil)
-		rr := httptest.NewRecorder()
-		r.ServeHTTP(rr, req)
+		t.Run("listing is successful", func(t *testing.T) {
+			mockRepo := mocks.NewConfig(t)
+			stubs := generateConfigListStubs(t)
+			mockRepo.On("List").Return(stubs, nil)
 
-		assert.Equal(t, http.StatusOK, rr.Code)
+			svc := service.NewConfig(mockRepo)
+			configController := controller.NewConfig(svc)
+
+			r := mux.NewRouter()
+			configController.SetRouter(r)
+
+			req := httptest.NewRequest(http.MethodGet, "/configs", nil)
+			rr := httptest.NewRecorder()
+			r.ServeHTTP(rr, req)
+
+			t.Run("status is OK", func(t *testing.T) {
+				assert.Equal(t, http.StatusOK, rr.Code)
+			})
+
+			t.Run("it returns the expected number of configs", func(t *testing.T) {
+				wantLen := len(stubs)
+
+				var responseConfigs []domain.Config
+				err := json.Unmarshal(rr.Body.Bytes(), &responseConfigs)
+				require.NoError(t, err)
+
+				assert.Equal(t, wantLen, len(responseConfigs))
+			})
+		})
+
+		t.Run("service errors out", func(t *testing.T) {
+			mockRepo := mocks.NewConfig(t)
+			mockRepo.On("List").Return(nil, errors.New("oops"))
+
+			svc := service.NewConfig(mockRepo)
+			configController := controller.NewConfig(svc)
+
+			r := mux.NewRouter()
+			configController.SetRouter(r)
+
+			req := httptest.NewRequest(http.MethodGet, "/configs", nil)
+			rr := httptest.NewRecorder()
+			r.ServeHTTP(rr, req)
+
+			t.Run("status is InternalServerError", func(t *testing.T) {
+				assert.Equal(t, http.StatusInternalServerError, rr.Code)
+			})
+		})
 	})
 
 	t.Run("create config", func(t *testing.T) {
+		configController := controller.Config{}
+
+		r := mux.NewRouter()
+		configController.SetRouter(r)
+
 		req := httptest.NewRequest(http.MethodPost, "/configs", nil)
 		rr := httptest.NewRecorder()
 		r.ServeHTTP(rr, req)
@@ -33,6 +82,11 @@ func TestConfig(t *testing.T) {
 	})
 
 	t.Run("get config", func(t *testing.T) {
+		configController := controller.Config{}
+
+		r := mux.NewRouter()
+		configController.SetRouter(r)
+
 		req := httptest.NewRequest(http.MethodGet, "/configs/foo", nil)
 		rr := httptest.NewRecorder()
 		r.ServeHTTP(rr, req)
@@ -41,6 +95,11 @@ func TestConfig(t *testing.T) {
 	})
 
 	t.Run("update config using the PUT HTTP verb", func(t *testing.T) {
+		configController := controller.Config{}
+
+		r := mux.NewRouter()
+		configController.SetRouter(r)
+
 		req := httptest.NewRequest(http.MethodPut, "/configs/foo", nil)
 		rr := httptest.NewRecorder()
 		r.ServeHTTP(rr, req)
@@ -49,6 +108,11 @@ func TestConfig(t *testing.T) {
 	})
 
 	t.Run("update config using the PATCH HTTP verb", func(t *testing.T) {
+		configController := controller.Config{}
+
+		r := mux.NewRouter()
+		configController.SetRouter(r)
+
 		req := httptest.NewRequest(http.MethodPatch, "/configs/foo", nil)
 		rr := httptest.NewRecorder()
 		r.ServeHTTP(rr, req)
@@ -57,6 +121,11 @@ func TestConfig(t *testing.T) {
 	})
 
 	t.Run("delete config", func(t *testing.T) {
+		configController := controller.Config{}
+
+		r := mux.NewRouter()
+		configController.SetRouter(r)
+
 		req := httptest.NewRequest(http.MethodDelete, "/configs/foo", nil)
 		rr := httptest.NewRecorder()
 		r.ServeHTTP(rr, req)
@@ -65,6 +134,11 @@ func TestConfig(t *testing.T) {
 	})
 
 	t.Run("search configs using query params", func(t *testing.T) {
+		configController := controller.Config{}
+
+		r := mux.NewRouter()
+		configController.SetRouter(r)
+
 		wantKey := "metadata.foo"
 		wantValue := "bar"
 
@@ -77,4 +151,33 @@ func TestConfig(t *testing.T) {
 		assert.Contains(t, rr.Body.String(), wantKey)
 		assert.Contains(t, rr.Body.String(), wantValue)
 	})
+}
+
+func generateConfigListStubs(t testing.TB) []domain.Config {
+	t.Helper()
+
+	return []domain.Config{
+		{
+			Name: "config 1",
+			Metadata: []byte(`
+				"foo": "bar",
+				"abc": 123,
+				"obj": {
+					"aaa": "bbb",
+				},
+			`),
+		},
+		{
+			Name: "config 2",
+			Metadata: []byte(`
+				"enabled": "true",
+				"abc": 123,
+				"obj": {
+					"aaa": {
+						"bbb": "ccc"
+					},
+				},
+			`),
+		},
+	}
 }

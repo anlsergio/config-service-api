@@ -9,6 +9,7 @@ import (
 
 func main() {
 	configController := controller.Config{}
+
 	r := mux.NewRouter()
 	configController.SetRouter(r)
 

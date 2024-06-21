@@ -1,20 +1,26 @@
 package controller
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/gorilla/mux"
+	"github.com/hellofreshdevtests/HFtest-platform-anlsergio/internal/service"
+	"log"
 	"net/http"
 	"strings"
 )
 
 // NewConfig creates a new Config controller instance.
-func NewConfig() *Config {
-	return &Config{}
+// It expects a service as a dependency.
+func NewConfig(svc *service.Config) *Config {
+	return &Config{service: svc}
 }
 
 // Config is the config controller.
 // It defines routes and handlers for the config resources.
-type Config struct{}
+type Config struct {
+	service *service.Config
+}
 
 // SetRouter returns the router r with all the necessary routes for the
 // Config controller setup.
@@ -36,8 +42,22 @@ func (c Config) SetRouter(r *mux.Router) {
 }
 
 func (c Config) list(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("list"))
+	w.Header().Set("Content-Type", "application/json")
+
+	configs, err := c.service.List()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+
+	bytes, err := json.Marshal(configs)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+
+	_, err = w.Write(bytes)
+	if err != nil {
+		log.Printf("Failed to write response: %s", err.Error())
+	}
 }
 
 func (c Config) create(w http.ResponseWriter, r *http.Request) {
