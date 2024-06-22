@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/hellofreshdevtests/HFtest-platform-anlsergio/internal/controller/dto"
+	"github.com/hellofreshdevtests/HFtest-platform-anlsergio/internal/controller/middleware"
 	"github.com/hellofreshdevtests/HFtest-platform-anlsergio/internal/service"
 	"log"
 	"net/http"
@@ -28,23 +29,21 @@ type Config struct {
 func (c Config) SetRouter(r *mux.Router) {
 	// TODO: create an object Route to better organize these
 	// routes
-	r.HandleFunc("/configs", c.list).
+	r.HandleFunc("/configs", middleware.SetJSONContent(c.list)).
 		Methods(http.MethodGet)
-	r.HandleFunc("/configs", c.create).
+	r.HandleFunc("/configs", middleware.SetJSONContent(c.create)).
 		Methods(http.MethodPost)
-	r.HandleFunc("/configs/{name}", c.get).
+	r.HandleFunc("/configs/{name}", middleware.SetJSONContent(c.get)).
 		Methods(http.MethodGet)
-	r.HandleFunc("/configs/{name}", c.update).
+	r.HandleFunc("/configs/{name}", middleware.SetJSONContent(c.update)).
 		Methods(http.MethodPut, http.MethodPatch)
-	r.HandleFunc("/configs/{name}", c.delete).
+	r.HandleFunc("/configs/{name}", middleware.SetJSONContent(c.delete)).
 		Methods(http.MethodDelete)
-	r.HandleFunc("/search", c.query).
+	r.HandleFunc("/search", middleware.SetJSONContent(c.query)).
 		Methods(http.MethodGet)
 }
 
 func (c Config) list(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
 	configs, err := c.service.List()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -64,9 +63,6 @@ func (c Config) list(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c Config) create(w http.ResponseWriter, r *http.Request) {
-	// TODO: create a middleware to set the content type for all handlers.
-	w.Header().Set("Content-Type", "application/json")
-
 	var requestBody dto.Config
 	if err := json.NewDecoder(r.Body).Decode(&requestBody); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
