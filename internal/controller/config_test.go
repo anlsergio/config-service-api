@@ -10,6 +10,7 @@ import (
 	"github.com/hellofreshdevtests/HFtest-platform-anlsergio/internal/repository"
 	"github.com/hellofreshdevtests/HFtest-platform-anlsergio/internal/repository/mocks"
 	"github.com/hellofreshdevtests/HFtest-platform-anlsergio/internal/service"
+	"github.com/hellofreshdevtests/HFtest-platform-anlsergio/test"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -21,30 +22,7 @@ import (
 
 func TestConfig(t *testing.T) {
 	t.Run("list configs", func(t *testing.T) {
-		customData := map[string]domain.Config{
-			"config 1": {
-				Name: "config 1",
-				Metadata: []byte(`
-				"foo": "bar",
-				"abc": 123,
-				"obj": {
-					"aaa": "bbb",
-				},
-			`),
-			},
-			"config 2": {
-				Name: "config 2",
-				Metadata: []byte(`
-				"enabled": "true",
-				"abc": 123,
-				"obj": {
-					"aaa": {
-						"bbb": "ccc"
-					},
-				},
-			`),
-			},
-		}
+		customData := test.GenerateInMemoryTestData(t)
 
 		t.Run("listing is successful", func(t *testing.T) {
 			repo := repository.NewInMemoryConfig(repository.WithCustomData(customData))
@@ -205,16 +183,39 @@ func TestConfig(t *testing.T) {
 	})
 
 	t.Run("get config", func(t *testing.T) {
-		configController := controller.Config{}
+		customData := test.GenerateInMemoryTestData(t)
+		repo := repository.NewInMemoryConfig(repository.WithCustomData(customData))
+		svc := service.NewConfig(repo)
+		configController := controller.NewConfig(svc)
 
 		r := mux.NewRouter()
 		configController.SetRouter(r)
 
-		req := httptest.NewRequest(http.MethodGet, "/configs/foo", nil)
-		rr := httptest.NewRecorder()
-		r.ServeHTTP(rr, req)
+		t.Run("gets config successfully", func(t *testing.T) {
+			wantName := test.ConfigName1
 
-		assert.Equal(t, http.StatusOK, rr.Code)
+			req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/configs/%s", wantName), nil)
+			rr := httptest.NewRecorder()
+			r.ServeHTTP(rr, req)
+
+			t.Run("http status is OK", func(t *testing.T) {
+				assert.Equal(t, http.StatusOK, rr.Code)
+			})
+
+			t.Run("corresponding config is present in the response", func(t *testing.T) {
+				assert.Contains(t, rr.Body.String(), wantName)
+			})
+		})
+
+		t.Run("config not found", func(t *testing.T) {
+			req := httptest.NewRequest(http.MethodGet, "/configs/nope", nil)
+			rr := httptest.NewRecorder()
+			r.ServeHTTP(rr, req)
+
+			t.Run("status is not found", func(t *testing.T) {
+				assert.Equal(t, http.StatusNotFound, rr.Code)
+			})
+		})
 	})
 
 	t.Run("update config using the PUT HTTP verb", func(t *testing.T) {

@@ -27,7 +27,12 @@ func (c Config) List() ([]domain.Config, error) {
 	return configs, nil
 }
 
-// Create creates a new config persisting it in a datastore.
-func (c Config) Create(config domain.Config) error {
-	return c.repo.Save(config)
+// Create creates a new config according to cfg.
+func (c Config) Create(cfg domain.Config) error {
+	return c.repo.Save(cfg)
+}
+
+// Get gets a config identified by its name.
+func (c Config) Get(name string) (domain.Config, error) {
+	return c.repo.Get(name)
 }

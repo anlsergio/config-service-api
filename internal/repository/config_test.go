@@ -3,37 +3,16 @@ package repository_test
 import (
 	"github.com/hellofreshdevtests/HFtest-platform-anlsergio/internal/domain"
 	"github.com/hellofreshdevtests/HFtest-platform-anlsergio/internal/repository"
+	"github.com/hellofreshdevtests/HFtest-platform-anlsergio/test"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"testing"
 )
 
 func TestInMemoryConfig_List(t *testing.T) {
-	customData := map[string]domain.Config{
-		"config 1": {
-			Name: "config 1",
-			Metadata: []byte(`
-				"foo": "bar",
-				"abc": 123,
-				"obj": {
-					"aaa": "bbb",
-				},
-			`),
-		},
-		"config 2": {
-			Name: "config 2",
-			Metadata: []byte(`
-				"enabled": "true",
-				"abc": 123,
-				"obj": {
-					"aaa": {
-						"bbb": "ccc"
-					},
-				},
-			`),
-		},
-	}
-
+	customData := test.GenerateInMemoryTestData(t)
 	repo := repository.NewInMemoryConfig(repository.WithCustomData(customData))
+
 	configs, err := repo.List()
 	require.NoError(t, err)
 
@@ -44,16 +23,45 @@ func TestInMemoryConfig_List(t *testing.T) {
 }
 
 func TestInMemoryConfig_Save(t *testing.T) {
+	repo := repository.NewInMemoryConfig()
+
 	toCreateConfig := domain.Config{
 		Name:     "config 1",
 		Metadata: []byte(`{"foo": "bar"}`),
 	}
-
-	repo := repository.NewInMemoryConfig()
-
 	require.NoError(t, repo.Save(toCreateConfig))
 
-	t.Run("config is created", func(t *testing.T) {
-		// TODO: get the corresponding config when the get method is implemented
+	t.Run("created config is the expected config", func(t *testing.T) {
+		config, err := repo.Get(toCreateConfig.Name)
+		require.NoError(t, err)
+		assert.Equal(t, toCreateConfig, config)
+	})
+}
+
+func TestInMemoryConfig_Get(t *testing.T) {
+	customData := test.GenerateInMemoryTestData(t)
+	repo := repository.NewInMemoryConfig(repository.WithCustomData(customData))
+
+	t.Run("config is found", func(t *testing.T) {
+		wantName := test.ConfigName1
+
+		config, err := repo.Get(wantName)
+		require.NoError(t, err)
+
+		t.Run("it returns the expected config", func(t *testing.T) {
+			assert.Equal(t, wantName, config.Name)
+		})
+	})
+
+	t.Run("config is not found", func(t *testing.T) {
+		config, err := repo.Get("invalid")
+
+		t.Run("it's the expected error type", func(t *testing.T) {
+			assert.ErrorIs(t, err, repository.ErrConfigNotFound)
+		})
+
+		t.Run("config object is empty", func(t *testing.T) {
+			assert.Empty(t, config)
+		})
 	})
 }

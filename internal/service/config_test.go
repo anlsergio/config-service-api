@@ -5,6 +5,7 @@ import (
 	"github.com/hellofreshdevtests/HFtest-platform-anlsergio/internal/domain"
 	"github.com/hellofreshdevtests/HFtest-platform-anlsergio/internal/repository/mocks"
 	"github.com/hellofreshdevtests/HFtest-platform-anlsergio/internal/service"
+	"github.com/hellofreshdevtests/HFtest-platform-anlsergio/test"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -14,7 +15,7 @@ import (
 func TestConfig_List(t *testing.T) {
 	t.Run("listing is successful", func(t *testing.T) {
 		mockRepo := mocks.NewConfig(t)
-		stubs := generateConfigListStubs(t)
+		stubs := test.GenerateConfigListStubs(t)
 		mockRepo.On("List").Return(stubs, nil)
 
 		svc := service.NewConfig(mockRepo)
@@ -32,7 +33,7 @@ func TestConfig_List(t *testing.T) {
 
 	t.Run("listing returns error", func(t *testing.T) {
 		mockRepo := mocks.NewConfig(t)
-		stubs := generateConfigListStubs(t)
+		stubs := test.GenerateConfigListStubs(t)
 		mockRepo.On("List").Return(stubs, errors.New("oops"))
 
 		svc := service.NewConfig(mockRepo)
@@ -57,7 +58,6 @@ func TestConfig_Create(t *testing.T) {
 		mockRepo.On("Save", mock.Anything).
 			Return(func(config domain.Config) error {
 				assert.Equal(t, toCreateConfig, config)
-
 				return nil
 			})
 
@@ -66,33 +66,22 @@ func TestConfig_Create(t *testing.T) {
 	})
 }
 
-// TODO: refactor it in a generic function
-// to be used across multiple packages.
-func generateConfigListStubs(t testing.TB) []domain.Config {
-	t.Helper()
+func TestConfig_Get(t *testing.T) {
+	t.Run("get is successful", func(t *testing.T) {
+		mockRepo := mocks.NewConfig(t)
+		wantName := test.ConfigName1
+		mockRepo.On("Get", mock.Anything).
+			Return(domain.Config{
+				Name:     wantName,
+				Metadata: []byte(`{"foo": "bar"}`),
+			}, nil)
 
-	return []domain.Config{
-		{
-			Name: "config 1",
-			Metadata: []byte(`
-				"foo": "bar",
-				"abc": 123,
-				"obj": {
-					"aaa": "bbb",
-				},
-			`),
-		},
-		{
-			Name: "config 2",
-			Metadata: []byte(`
-				"enabled": "true",
-				"abc": 123,
-				"obj": {
-					"aaa": {
-						"bbb": "ccc"
-					},
-				},
-			`),
-		},
-	}
+		svc := service.NewConfig(mockRepo)
+		config, err := svc.Get(wantName)
+		require.NoError(t, err)
+
+		t.Run("returned config match expected name", func(t *testing.T) {
+			assert.Equal(t, wantName, config.Name)
+		})
+	})
 }

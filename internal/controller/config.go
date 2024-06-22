@@ -2,10 +2,12 @@ package controller
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/hellofreshdevtests/HFtest-platform-anlsergio/internal/controller/dto"
 	"github.com/hellofreshdevtests/HFtest-platform-anlsergio/internal/controller/middleware"
+	"github.com/hellofreshdevtests/HFtest-platform-anlsergio/internal/repository"
 	"github.com/hellofreshdevtests/HFtest-platform-anlsergio/internal/service"
 	"log"
 	"net/http"
@@ -47,18 +49,21 @@ func (c Config) list(w http.ResponseWriter, r *http.Request) {
 	configs, err := c.service.List()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
-	// convert the configs slice into a json byte array
-	// so that it can be written as a JSON response back to the requester.
 	bytes, err := json.Marshal(configs)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	_, err = w.Write(bytes)
 	if err != nil {
+		// TODO: replace by Uber Zap logger because of its
+		// more advanced features.
 		log.Printf("Failed to write response: %s", err.Error())
+		return
 	}
 }
 
@@ -66,23 +71,48 @@ func (c Config) create(w http.ResponseWriter, r *http.Request) {
 	var requestBody dto.Config
 	if err := json.NewDecoder(r.Body).Decode(&requestBody); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
 	}
 
 	config, err := dto.ToDomainConfig(requestBody)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
 	}
 
 	if err := c.service.Create(config); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	w.WriteHeader(http.StatusCreated)
 }
 
 func (c Config) get(w http.ResponseWriter, r *http.Request) {
+	name := mux.Vars(r)["name"]
+
+	config, err := c.service.Get(name)
+	if err != nil {
+		if errors.Is(err, repository.ErrConfigNotFound) {
+			http.Error(w, err.Error(), http.StatusNotFound)
+			return
+		}
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	bytes, err := json.Marshal(config)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("get"))
+	_, err = w.Write(bytes)
+	if err != nil {
+		log.Printf("Failed to write response: %s", err.Error())
+		return
+	}
 }
 
 func (c Config) update(w http.ResponseWriter, r *http.Request) {

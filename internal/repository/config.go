@@ -1,8 +1,14 @@
 package repository
 
 import (
+	"errors"
 	"github.com/hellofreshdevtests/HFtest-platform-anlsergio/internal/domain"
 	"sync"
+)
+
+var (
+	// ErrConfigNotFound is used when a given config doesn't exist.
+	ErrConfigNotFound = errors.New("config not found")
 )
 
 // Config is the port defining the I/O operations
@@ -11,9 +17,9 @@ import (
 //go:generate mockery --name Config
 type Config interface {
 	// List gets a list of configs.
-	List() (config []domain.Config, error error)
+	List() ([]domain.Config, error)
 	// Save persists a new config.
-	Save(config domain.Config) error
+	Save(cfg domain.Config) error
 	// Get gets a config identified by its name.
 	Get(name string) (domain.Config, error)
 	// Update updates a given domain, applying what's in
@@ -68,7 +74,7 @@ type InMemoryConfig struct {
 }
 
 // List fetches all available configs from an in-memory datastore.
-func (i *InMemoryConfig) List() (config []domain.Config, error error) {
+func (i *InMemoryConfig) List() ([]domain.Config, error) {
 	i.mu.Lock()
 	defer i.mu.Unlock()
 
@@ -82,18 +88,26 @@ func (i *InMemoryConfig) List() (config []domain.Config, error error) {
 }
 
 // Save persists a config into an in-memory datastore.
-func (i *InMemoryConfig) Save(config domain.Config) error {
+func (i *InMemoryConfig) Save(cfg domain.Config) error {
 	i.mu.Lock()
 	defer i.mu.Unlock()
 
-	i.configs[config.Name] = config
+	i.configs[cfg.Name] = cfg
 
 	return nil
 }
 
+// Get fetches a config from the in-memory datastore.
 func (i *InMemoryConfig) Get(name string) (domain.Config, error) {
-	//TODO implement me
-	panic("implement me")
+	i.mu.Lock()
+	defer i.mu.Unlock()
+
+	config, ok := i.configs[name]
+	if !ok {
+		return domain.Config{}, ErrConfigNotFound
+	}
+
+	return config, nil
 }
 
 func (i *InMemoryConfig) Update(name string, form domain.Config) error {
