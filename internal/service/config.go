@@ -36,3 +36,8 @@ func (c Config) Create(cfg domain.Config) error {
 func (c Config) Get(name string) (domain.Config, error) {
 	return c.repo.Get(name)
 }
+
+// Update updates the config identified by name applying whatever is in metadata.
+func (c Config) Update(name string, metadata []byte) error {
+	return c.repo.Update(name, metadata)
+}

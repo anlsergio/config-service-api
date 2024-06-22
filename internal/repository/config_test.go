@@ -65,3 +65,36 @@ func TestInMemoryConfig_Get(t *testing.T) {
 		})
 	})
 }
+
+func TestInMemoryConfig_Update(t *testing.T) {
+	customData := test.GenerateInMemoryTestData(t)
+	repo := repository.NewInMemoryConfig(repository.WithCustomData(customData))
+
+	t.Run("config is updated", func(t *testing.T) {
+		wantName := test.ConfigName1
+		wantMetadata := []byte(`{"got": "updated!"}`)
+
+		// extract the exact config object to be updated
+		// to keep references of it for comparison purposes.
+		config1 := customData[wantName]
+		metadataBeforeUpdate := config1.Metadata
+
+		require.NoError(t, repo.Update(wantName, wantMetadata))
+
+		gotConfig, err := repo.Get(wantName)
+		require.NoError(t, err)
+
+		t.Run("metadata is updated", func(t *testing.T) {
+			assert.Equal(t, wantMetadata, gotConfig.Metadata)
+			assert.NotEqual(t, metadataBeforeUpdate, gotConfig.Metadata)
+		})
+	})
+
+	t.Run("config not found", func(t *testing.T) {
+		err := repo.Update("nope", nil)
+
+		t.Run("not found error", func(t *testing.T) {
+			assert.ErrorIs(t, err, repository.ErrConfigNotFound)
+		})
+	})
+}

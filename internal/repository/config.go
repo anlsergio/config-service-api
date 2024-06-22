@@ -22,9 +22,9 @@ type Config interface {
 	Save(cfg domain.Config) error
 	// Get gets a config identified by its name.
 	Get(name string) (domain.Config, error)
-	// Update updates a given domain, applying what's in
-	// form to the corresponding config identified by its name.
-	Update(name string, form domain.Config) error
+	// Update updates a given config, applying what's in
+	// metadata to the corresponding config identified by its name.
+	Update(name string, metadata []byte) error
 	// Delete deletes a given config by its name.
 	Delete(name string) error
 	// Search fetches all configs that match the property/value combination.
@@ -98,6 +98,7 @@ func (i *InMemoryConfig) Save(cfg domain.Config) error {
 }
 
 // Get fetches a config from the in-memory datastore.
+// If the resource is not found, it returns ErrConfigNotFound.
 func (i *InMemoryConfig) Get(name string) (domain.Config, error) {
 	i.mu.Lock()
 	defer i.mu.Unlock()
@@ -110,9 +111,28 @@ func (i *InMemoryConfig) Get(name string) (domain.Config, error) {
 	return config, nil
 }
 
-func (i *InMemoryConfig) Update(name string, form domain.Config) error {
-	//TODO implement me
-	panic("implement me")
+// Update updates a config in the in-memory datastore, based on its name,
+// applying what's defined in metadata.
+// If the resource is not found, it returns ErrConfigNotFound.
+//
+// TODO: perhaps the Update method should only expect a metadata
+// not the whole domain.Config object.
+func (i *InMemoryConfig) Update(name string, metadata []byte) error {
+	i.mu.Lock()
+	defer i.mu.Unlock()
+
+	// make sure the resource exists in the first place.
+	existingConfig, ok := i.configs[name]
+	if !ok {
+		return ErrConfigNotFound
+	}
+
+	// preserve existing config name
+	// because it's the only identifier at this point.
+	existingConfig.Metadata = metadata
+	i.configs[name] = existingConfig
+
+	return nil
 }
 
 func (i *InMemoryConfig) Delete(name string) error {

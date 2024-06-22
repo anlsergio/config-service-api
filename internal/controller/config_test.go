@@ -14,6 +14,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -129,7 +130,7 @@ func TestConfig(t *testing.T) {
 						"trans-fat": "1g"
 					  },
 				}
-`
+				`
 
 			req := httptest.NewRequest(http.MethodPost, "/configs", strings.NewReader(requestBody))
 			rr := httptest.NewRecorder()
@@ -218,30 +219,89 @@ func TestConfig(t *testing.T) {
 		})
 	})
 
-	t.Run("update config using the PUT HTTP verb", func(t *testing.T) {
-		configController := controller.Config{}
+	t.Run("update config", func(t *testing.T) {
+		fineRequestBody := `
+			{
+				"metadata": {
+				  "calories": 230,
+				  "fats": {
+					"saturated-fat": "0g",
+					"trans-fat": "1g"
+				  }
+				}
+			}
+			`
 
-		r := mux.NewRouter()
-		configController.SetRouter(r)
+		invalidRequestBody := `
+			{
+				"metadata": {
+				  "calories": 230,
+				  "fats": {
+					"saturated-fat": "0g",
+					"trans-fat": "1g"
+				  }
+			}
+			`
 
-		req := httptest.NewRequest(http.MethodPut, "/configs/foo", nil)
-		rr := httptest.NewRecorder()
-		r.ServeHTTP(rr, req)
+		// using table tests approach to avoid test code duplication
+		tests := []struct {
+			name           string
+			configName     string
+			method         string
+			requestBody    io.Reader
+			wantHTTPStatus int
+		}{
+			{
+				name:           "using the PUT HTTP verb",
+				configName:     test.ConfigName1,
+				method:         http.MethodPut,
+				requestBody:    strings.NewReader(fineRequestBody),
+				wantHTTPStatus: http.StatusOK,
+			},
+			{
+				name:           "using the PATCH HTTP verb",
+				configName:     test.ConfigName1,
+				method:         http.MethodPatch,
+				requestBody:    strings.NewReader(fineRequestBody),
+				wantHTTPStatus: http.StatusOK,
+			},
+			{
+				name:           "invalid request body",
+				configName:     test.ConfigName1,
+				method:         http.MethodPut,
+				requestBody:    strings.NewReader(invalidRequestBody),
+				wantHTTPStatus: http.StatusBadRequest,
+			},
+			{
+				name:           "resource doesn't exist",
+				configName:     "nope",
+				method:         http.MethodPut,
+				requestBody:    strings.NewReader(fineRequestBody),
+				wantHTTPStatus: http.StatusNotFound,
+			},
+		}
 
-		assert.Equal(t, http.StatusOK, rr.Code)
-	})
+		for _, tt := range tests {
+			t.Run(tt.name, func(t *testing.T) {
+				customData := test.GenerateInMemoryTestData(t)
+				repo := repository.NewInMemoryConfig(repository.WithCustomData(customData))
+				svc := service.NewConfig(repo)
+				configController := controller.NewConfig(svc)
 
-	t.Run("update config using the PATCH HTTP verb", func(t *testing.T) {
-		configController := controller.Config{}
+				r := mux.NewRouter()
+				configController.SetRouter(r)
 
-		r := mux.NewRouter()
-		configController.SetRouter(r)
+				req := httptest.NewRequest(tt.method,
+					fmt.Sprintf("/configs/%s", tt.configName),
+					tt.requestBody)
+				rr := httptest.NewRecorder()
+				r.ServeHTTP(rr, req)
 
-		req := httptest.NewRequest(http.MethodPatch, "/configs/foo", nil)
-		rr := httptest.NewRecorder()
-		r.ServeHTTP(rr, req)
-
-		assert.Equal(t, http.StatusOK, rr.Code)
+				t.Run("https status is the expected one", func(t *testing.T) {
+					assert.Equal(t, tt.wantHTTPStatus, rr.Code)
+				})
+			})
+		}
 	})
 
 	t.Run("delete config", func(t *testing.T) {

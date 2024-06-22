@@ -169,8 +169,8 @@ func (_c *Config_List_Call) Run(run func()) *Config_List_Call {
 	return _c
 }
 
-func (_c *Config_List_Call) Return(config []domain.Config, error1 error) *Config_List_Call {
-	_c.Call.Return(config, error1)
+func (_c *Config_List_Call) Return(_a0 []domain.Config, _a1 error) *Config_List_Call {
+	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
@@ -179,9 +179,9 @@ func (_c *Config_List_Call) RunAndReturn(run func() ([]domain.Config, error)) *C
 	return _c
 }
 
-// Save provides a mock function with given fields: config
-func (_m *Config) Save(config domain.Config) error {
-	ret := _m.Called(config)
+// Save provides a mock function with given fields: cfg
+func (_m *Config) Save(cfg domain.Config) error {
+	ret := _m.Called(cfg)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Save")
@@ -189,7 +189,7 @@ func (_m *Config) Save(config domain.Config) error {
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(domain.Config) error); ok {
-		r0 = rf(config)
+		r0 = rf(cfg)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -203,12 +203,12 @@ type Config_Save_Call struct {
 }
 
 // Save is a helper method to define mock.On call
-//   - config domain.Config
-func (_e *Config_Expecter) Save(config interface{}) *Config_Save_Call {
-	return &Config_Save_Call{Call: _e.mock.On("Save", config)}
+//   - cfg domain.Config
+func (_e *Config_Expecter) Save(cfg interface{}) *Config_Save_Call {
+	return &Config_Save_Call{Call: _e.mock.On("Save", cfg)}
 }
 
-func (_c *Config_Save_Call) Run(run func(config domain.Config)) *Config_Save_Call {
+func (_c *Config_Save_Call) Run(run func(cfg domain.Config)) *Config_Save_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(domain.Config))
 	})
@@ -284,17 +284,17 @@ func (_c *Config_Search_Call) RunAndReturn(run func(string, string) ([]domain.Co
 	return _c
 }
 
-// Update provides a mock function with given fields: name, form
-func (_m *Config) Update(name string, form domain.Config) error {
-	ret := _m.Called(name, form)
+// Update provides a mock function with given fields: name, metadata
+func (_m *Config) Update(name string, metadata []byte) error {
+	ret := _m.Called(name, metadata)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Update")
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(string, domain.Config) error); ok {
-		r0 = rf(name, form)
+	if rf, ok := ret.Get(0).(func(string, []byte) error); ok {
+		r0 = rf(name, metadata)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -309,14 +309,14 @@ type Config_Update_Call struct {
 
 // Update is a helper method to define mock.On call
 //   - name string
-//   - form domain.Config
-func (_e *Config_Expecter) Update(name interface{}, form interface{}) *Config_Update_Call {
-	return &Config_Update_Call{Call: _e.mock.On("Update", name, form)}
+//   - metadata []byte
+func (_e *Config_Expecter) Update(name interface{}, metadata interface{}) *Config_Update_Call {
+	return &Config_Update_Call{Call: _e.mock.On("Update", name, metadata)}
 }
 
-func (_c *Config_Update_Call) Run(run func(name string, form domain.Config)) *Config_Update_Call {
+func (_c *Config_Update_Call) Run(run func(name string, metadata []byte)) *Config_Update_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(string), args[1].(domain.Config))
+		run(args[0].(string), args[1].([]byte))
 	})
 	return _c
 }
@@ -326,7 +326,7 @@ func (_c *Config_Update_Call) Return(_a0 error) *Config_Update_Call {
 	return _c
 }
 
-func (_c *Config_Update_Call) RunAndReturn(run func(string, domain.Config) error) *Config_Update_Call {
+func (_c *Config_Update_Call) RunAndReturn(run func(string, []byte) error) *Config_Update_Call {
 	_c.Call.Return(run)
 	return _c
 }

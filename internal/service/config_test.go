@@ -85,3 +85,16 @@ func TestConfig_Get(t *testing.T) {
 		})
 	})
 }
+
+func TestConfig_Update(t *testing.T) {
+	t.Run("update is successful", func(t *testing.T) {
+		mockRepo := mocks.NewConfig(t)
+		mockRepo.On("Update", mock.Anything, mock.Anything).Return(nil)
+
+		wantName := test.ConfigName1
+
+		svc := service.NewConfig(mockRepo)
+		err := svc.Update(wantName, []byte(`{"foo": "bar"}`))
+		require.NoError(t, err)
+	})
+}

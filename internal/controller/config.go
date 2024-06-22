@@ -116,8 +116,30 @@ func (c Config) get(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c Config) update(w http.ResponseWriter, r *http.Request) {
+	name := mux.Vars(r)["name"]
+
+	var requestBody dto.Config
+	if err := json.NewDecoder(r.Body).Decode(&requestBody); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	form, err := dto.ToDomainConfig(requestBody)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	if err := c.service.Update(name, form.Metadata); err != nil {
+		if errors.Is(err, repository.ErrConfigNotFound) {
+			http.Error(w, err.Error(), http.StatusNotFound)
+			return
+		}
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("update"))
 }
 
 func (c Config) delete(w http.ResponseWriter, r *http.Request) {
