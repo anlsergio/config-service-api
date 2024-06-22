@@ -143,8 +143,19 @@ func (c Config) update(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c Config) delete(w http.ResponseWriter, r *http.Request) {
+	name := mux.Vars(r)["name"]
+
+	err := c.service.Delete(name)
+	if err != nil {
+		if errors.Is(err, repository.ErrConfigNotFound) {
+			http.Error(w, err.Error(), http.StatusNotFound)
+			return
+		}
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("delete"))
 }
 
 func (c Config) query(w http.ResponseWriter, r *http.Request) {

@@ -41,3 +41,8 @@ func (c Config) Get(name string) (domain.Config, error) {
 func (c Config) Update(name string, metadata []byte) error {
 	return c.repo.Update(name, metadata)
 }
+
+// Delete removes the config identified by name.
+func (c Config) Delete(name string) error {
+	return c.repo.Delete(name)
+}

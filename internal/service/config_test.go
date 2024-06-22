@@ -98,3 +98,14 @@ func TestConfig_Update(t *testing.T) {
 		require.NoError(t, err)
 	})
 }
+
+func TestConfig_Delete(t *testing.T) {
+	t.Run("delete is successful", func(t *testing.T) {
+		mockRepo := mocks.NewConfig(t)
+		mockRepo.On("Delete", mock.Anything).Return(nil)
+		svc := service.NewConfig(mockRepo)
+
+		err := svc.Delete(test.ConfigName1)
+		require.NoError(t, err)
+	})
+}

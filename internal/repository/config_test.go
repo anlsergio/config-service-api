@@ -98,3 +98,35 @@ func TestInMemoryConfig_Update(t *testing.T) {
 		})
 	})
 }
+
+func TestInMemoryConfig_Delete(t *testing.T) {
+	customData := test.GenerateInMemoryTestData(t)
+	repo := repository.NewInMemoryConfig(repository.WithCustomData(customData))
+
+	t.Run("config is deleted", func(t *testing.T) {
+
+		configs, err := repo.List()
+		require.NoError(t, err)
+
+		// the expected number of configs available
+		// should drop by 1.
+		wantLen := len(configs) - 1
+
+		require.NoError(t, repo.Delete(test.ConfigName1))
+
+		t.Run("it returns the expected number of configs", func(t *testing.T) {
+			updatedConfigList, err := repo.List()
+			require.NoError(t, err)
+
+			assert.Len(t, updatedConfigList, wantLen)
+		})
+	})
+
+	t.Run("config not found", func(t *testing.T) {
+		err := repo.Delete("nope")
+
+		t.Run("not found error", func(t *testing.T) {
+			assert.ErrorIs(t, err, repository.ErrConfigNotFound)
+		})
+	})
+}

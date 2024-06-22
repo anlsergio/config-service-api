@@ -305,16 +305,29 @@ func TestConfig(t *testing.T) {
 	})
 
 	t.Run("delete config", func(t *testing.T) {
-		configController := controller.Config{}
+		customData := test.GenerateInMemoryTestData(t)
+		repo := repository.NewInMemoryConfig(repository.WithCustomData(customData))
+		svc := service.NewConfig(repo)
+		configController := controller.NewConfig(svc)
 
 		r := mux.NewRouter()
 		configController.SetRouter(r)
 
-		req := httptest.NewRequest(http.MethodDelete, "/configs/foo", nil)
-		rr := httptest.NewRecorder()
-		r.ServeHTTP(rr, req)
+		t.Run("delete successfully", func(t *testing.T) {
+			req := httptest.NewRequest(http.MethodDelete, fmt.Sprintf("/configs/%s", test.ConfigName1), nil)
+			rr := httptest.NewRecorder()
+			r.ServeHTTP(rr, req)
 
-		assert.Equal(t, http.StatusOK, rr.Code)
+			assert.Equal(t, http.StatusOK, rr.Code)
+		})
+
+		t.Run("config not found", func(t *testing.T) {
+			req := httptest.NewRequest(http.MethodDelete, "/configs/nope", nil)
+			rr := httptest.NewRecorder()
+			r.ServeHTTP(rr, req)
+
+			assert.Equal(t, http.StatusNotFound, rr.Code)
+		})
 	})
 
 	t.Run("search configs using query params", func(t *testing.T) {

@@ -135,9 +135,20 @@ func (i *InMemoryConfig) Update(name string, metadata []byte) error {
 	return nil
 }
 
+// Delete removes a given config from the in-memory datastore, based on its name.
 func (i *InMemoryConfig) Delete(name string) error {
-	//TODO implement me
-	panic("implement me")
+	i.mu.Lock()
+	defer i.mu.Unlock()
+
+	// make sure the resource exists in the first place.
+	_, ok := i.configs[name]
+	if !ok {
+		return ErrConfigNotFound
+	}
+
+	delete(i.configs, name)
+
+	return nil
 }
 
 func (i *InMemoryConfig) Search(property, value string) ([]domain.Config, error) {
