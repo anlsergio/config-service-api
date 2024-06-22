@@ -180,7 +180,7 @@ func (_c *Config_List_Call) RunAndReturn(run func() ([]domain.Config, error)) *C
 }
 
 // Save provides a mock function with given fields: config
-func (_m *Config) Save(config []domain.Config) error {
+func (_m *Config) Save(config domain.Config) error {
 	ret := _m.Called(config)
 
 	if len(ret) == 0 {
@@ -188,7 +188,7 @@ func (_m *Config) Save(config []domain.Config) error {
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func([]domain.Config) error); ok {
+	if rf, ok := ret.Get(0).(func(domain.Config) error); ok {
 		r0 = rf(config)
 	} else {
 		r0 = ret.Error(0)
@@ -203,14 +203,14 @@ type Config_Save_Call struct {
 }
 
 // Save is a helper method to define mock.On call
-//   - config []domain.Config
+//   - config domain.Config
 func (_e *Config_Expecter) Save(config interface{}) *Config_Save_Call {
 	return &Config_Save_Call{Call: _e.mock.On("Save", config)}
 }
 
-func (_c *Config_Save_Call) Run(run func(config []domain.Config)) *Config_Save_Call {
+func (_c *Config_Save_Call) Run(run func(config domain.Config)) *Config_Save_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].([]domain.Config))
+		run(args[0].(domain.Config))
 	})
 	return _c
 }
@@ -220,7 +220,7 @@ func (_c *Config_Save_Call) Return(_a0 error) *Config_Save_Call {
 	return _c
 }
 
-func (_c *Config_Save_Call) RunAndReturn(run func([]domain.Config) error) *Config_Save_Call {
+func (_c *Config_Save_Call) RunAndReturn(run func(domain.Config) error) *Config_Save_Call {
 	_c.Call.Return(run)
 	return _c
 }

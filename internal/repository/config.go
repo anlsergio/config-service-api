@@ -1,6 +1,9 @@
 package repository
 
-import "github.com/hellofreshdevtests/HFtest-platform-anlsergio/internal/domain"
+import (
+	"github.com/hellofreshdevtests/HFtest-platform-anlsergio/internal/domain"
+	"sync"
+)
 
 // Config is the port defining the I/O operations
 // for the domain.Config resource.
@@ -10,7 +13,7 @@ type Config interface {
 	// List gets a list of configs.
 	List() (config []domain.Config, error error)
 	// Save persists a new config.
-	Save(config []domain.Config) error
+	Save(config domain.Config) error
 	// Get gets a config identified by its name.
 	Get(name string) (domain.Config, error)
 	// Update updates a given domain, applying what's in
@@ -58,10 +61,17 @@ func WithCustomData(configs map[string]domain.Config) InMemoryOption {
 
 // InMemoryConfig defines the in-memory implementation of Config.
 type InMemoryConfig struct {
+	// used to protect the map from race conditions.
+	mu sync.Mutex
+	// TODO: improve the hashmap to avoid the redundant name as the key
 	configs map[string]domain.Config
 }
 
+// List fetches all available configs from an in-memory datastore.
 func (i *InMemoryConfig) List() (config []domain.Config, error error) {
+	i.mu.Lock()
+	defer i.mu.Unlock()
+
 	var configs []domain.Config
 
 	for _, c := range i.configs {
@@ -71,9 +81,14 @@ func (i *InMemoryConfig) List() (config []domain.Config, error error) {
 	return configs, nil
 }
 
-func (i *InMemoryConfig) Save(config []domain.Config) error {
-	//TODO implement me
-	panic("implement me")
+// Save persists a config into an in-memory datastore.
+func (i *InMemoryConfig) Save(config domain.Config) error {
+	i.mu.Lock()
+	defer i.mu.Unlock()
+
+	i.configs[config.Name] = config
+
+	return nil
 }
 
 func (i *InMemoryConfig) Get(name string) (domain.Config, error) {

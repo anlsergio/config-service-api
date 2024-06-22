@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/mux"
+	"github.com/hellofreshdevtests/HFtest-platform-anlsergio/internal/controller/dto"
 	"github.com/hellofreshdevtests/HFtest-platform-anlsergio/internal/service"
 	"log"
 	"net/http"
@@ -63,8 +64,24 @@ func (c Config) list(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c Config) create(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("create"))
+	// TODO: create a middleware to set the content type for all handlers.
+	w.Header().Set("Content-Type", "application/json")
+
+	var requestBody dto.Config
+	if err := json.NewDecoder(r.Body).Decode(&requestBody); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
+
+	config, err := dto.ToDomainConfig(requestBody)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
+
+	if err := c.service.Create(config); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+
+	w.WriteHeader(http.StatusCreated)
 }
 
 func (c Config) get(w http.ResponseWriter, r *http.Request) {

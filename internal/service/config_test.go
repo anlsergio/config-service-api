@@ -6,6 +6,7 @@ import (
 	"github.com/hellofreshdevtests/HFtest-platform-anlsergio/internal/repository/mocks"
 	"github.com/hellofreshdevtests/HFtest-platform-anlsergio/internal/service"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"testing"
 )
@@ -42,6 +43,26 @@ func TestConfig_List(t *testing.T) {
 		t.Run("configs list is empty", func(t *testing.T) {
 			assert.Empty(t, configs)
 		})
+	})
+}
+
+func TestConfig_Create(t *testing.T) {
+	t.Run("creation is successful", func(t *testing.T) {
+		toCreateConfig := domain.Config{
+			Name:     "config 1",
+			Metadata: []byte(`{"foo": "bar"}`),
+		}
+
+		mockRepo := mocks.NewConfig(t)
+		mockRepo.On("Save", mock.Anything).
+			Return(func(config domain.Config) error {
+				assert.Equal(t, toCreateConfig, config)
+
+				return nil
+			})
+
+		svc := service.NewConfig(mockRepo)
+		require.NoError(t, svc.Create(toCreateConfig))
 	})
 }
 

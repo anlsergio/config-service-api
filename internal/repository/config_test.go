@@ -42,3 +42,18 @@ func TestInMemoryConfig_List(t *testing.T) {
 		require.Equal(t, wantLen, len(configs))
 	})
 }
+
+func TestInMemoryConfig_Save(t *testing.T) {
+	toCreateConfig := domain.Config{
+		Name:     "config 1",
+		Metadata: []byte(`{"foo": "bar"}`),
+	}
+
+	repo := repository.NewInMemoryConfig()
+
+	require.NoError(t, repo.Save(toCreateConfig))
+
+	t.Run("config is created", func(t *testing.T) {
+		// TODO: get the corresponding config when the get method is implemented
+	})
+}

@@ -11,9 +11,11 @@ import (
 	"github.com/hellofreshdevtests/HFtest-platform-anlsergio/internal/repository/mocks"
 	"github.com/hellofreshdevtests/HFtest-platform-anlsergio/internal/service"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 )
 
@@ -56,7 +58,7 @@ func TestConfig(t *testing.T) {
 			rr := httptest.NewRecorder()
 			r.ServeHTTP(rr, req)
 
-			t.Run("status is OK", func(t *testing.T) {
+			t.Run("http status is OK", func(t *testing.T) {
 				assert.Equal(t, http.StatusOK, rr.Code)
 			})
 
@@ -92,16 +94,114 @@ func TestConfig(t *testing.T) {
 	})
 
 	t.Run("create config", func(t *testing.T) {
-		configController := controller.Config{}
+		t.Run("creation is successful", func(t *testing.T) {
+			repo := repository.NewInMemoryConfig()
+			svc := service.NewConfig(repo)
+			configController := controller.NewConfig(svc)
 
-		r := mux.NewRouter()
-		configController.SetRouter(r)
+			r := mux.NewRouter()
+			configController.SetRouter(r)
 
-		req := httptest.NewRequest(http.MethodPost, "/configs", nil)
-		rr := httptest.NewRecorder()
-		r.ServeHTTP(rr, req)
+			requestBody := `
+				{
+					"name": "burger-nutrition",
+					"metadata": {
+					  "calories": 230,
+					  "fats": {
+						"saturated-fat": "0g",
+						"trans-fat": "1g"
+					  },
+					  "carbohydrates": {
+						  "dietary-fiber": "4g",
+						  "sugars": "1g"
+					  },
+					  "allergens": {
+						"nuts": "false",
+						"seafood": "false",
+						"eggs": "true"
+					  }
+					}
+				}
+`
 
-		assert.Equal(t, http.StatusOK, rr.Code)
+			req := httptest.NewRequest(http.MethodPost, "/configs", strings.NewReader(requestBody))
+			rr := httptest.NewRecorder()
+			r.ServeHTTP(rr, req)
+
+			t.Run("http status is created", func(t *testing.T) {
+				assert.Equal(t, http.StatusCreated, rr.Code)
+			})
+		})
+
+		t.Run("invalid request body", func(t *testing.T) {
+			repo := repository.NewInMemoryConfig()
+			svc := service.NewConfig(repo)
+			configController := controller.NewConfig(svc)
+
+			r := mux.NewRouter()
+			configController.SetRouter(r)
+
+			requestBody := `
+				{
+					"name": "burger-nutrition",
+					"metadata": {
+					  "calories": 230,
+					  "fats": {
+						"saturated-fat": "0g",
+						"trans-fat": "1g"
+					  },
+				}
+`
+
+			req := httptest.NewRequest(http.MethodPost, "/configs", strings.NewReader(requestBody))
+			rr := httptest.NewRecorder()
+			r.ServeHTTP(rr, req)
+
+			t.Run("http status is bad request", func(t *testing.T) {
+				assert.Equal(t, http.StatusBadRequest, rr.Code)
+			})
+		})
+
+		t.Run("service errors out", func(t *testing.T) {
+			mockRepo := mocks.NewConfig(t)
+			mockRepo.On("Save", mock.Anything).Return(errors.New("oops"))
+
+			svc := service.NewConfig(mockRepo)
+			configController := controller.NewConfig(svc)
+
+			r := mux.NewRouter()
+			configController.SetRouter(r)
+
+			requestBody := `
+				{
+					"name": "burger-nutrition",
+					"metadata": {
+					  "calories": 230,
+					  "fats": {
+						"saturated-fat": "0g",
+						"trans-fat": "1g"
+					  },
+					  "carbohydrates": {
+						  "dietary-fiber": "4g",
+						  "sugars": "1g"
+					  },
+					  "allergens": {
+						"nuts": "false",
+						"seafood": "false",
+						"eggs": "true"
+					  }
+					}
+				}
+`
+
+			req := httptest.NewRequest(http.MethodPost, "/configs", strings.NewReader(requestBody))
+			rr := httptest.NewRecorder()
+			r.ServeHTTP(rr, req)
+
+			t.Run("http status is internal server error", func(t *testing.T) {
+				assert.Equal(t, http.StatusInternalServerError, rr.Code)
+			})
+		})
 	})
 
 	t.Run("get config", func(t *testing.T) {
@@ -174,33 +274,4 @@ func TestConfig(t *testing.T) {
 		assert.Contains(t, rr.Body.String(), wantKey)
 		assert.Contains(t, rr.Body.String(), wantValue)
 	})
-}
-
-func generateConfigListStubs(t testing.TB) []domain.Config {
-	t.Helper()
-
-	return []domain.Config{
-		{
-			Name: "config 1",
-			Metadata: []byte(`
-				"foo": "bar",
-				"abc": 123,
-				"obj": {
-					"aaa": "bbb",
-				},
-			`),
-		},
-		{
-			Name: "config 2",
-			Metadata: []byte(`
-				"enabled": "true",
-				"abc": 123,
-				"obj": {
-					"aaa": {
-						"bbb": "ccc"
-					},
-				},
-			`),
-		},
-	}
 }
