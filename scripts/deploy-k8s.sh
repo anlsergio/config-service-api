@@ -84,5 +84,10 @@ docker push $REGISTRY_HOST:$REGISTRY_PORT/$LOCAL_APP_IMAGE_NAME:latest
 # Apply the K8s manifests to deploy the application.
 kubectl apply -f $K8S_MANIFESTS_DIR
 
+# Force a deployment rollout even if there are no changes to the manifests.
+# TODO: keep this hackish approach?
+kubectl set image deployment/config-app-deployment \
+  config-server=$REGISTRY_HOST:$REGISTRY_PORT/$LOCAL_APP_IMAGE_NAME:latest
+
 # Kill the background port forwarding process after deploy is concluded.
 stopPortForwarding
