@@ -56,3 +56,11 @@ docker-update:
 # Simply build a Docker image.
 docker-build:
 	docker build -t config-service:latest .
+
+# Stops the container execution.
+docker-stop:
+	docker stop config-service
+
+# Removes the container.
+docker-rm: docker-stop
+	docker rm config-service

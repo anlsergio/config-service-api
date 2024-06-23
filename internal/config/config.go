@@ -35,7 +35,8 @@ func NewAppConfig(path string) *AppConfig {
 	viper.AutomaticEnv()
 
 	if err := viper.ReadInConfig(); err != nil {
-		log.Fatalf("Unable to read configuration file: %s", err.Error())
+		// TODO: it should be WARN level instead.
+		log.Printf("Unable to read configuration file: %s", err.Error())
 	}
 
 	var cfg AppConfig

@@ -5,8 +5,8 @@ services:
       context: .
       target: final
     environment:
-      - SERVE_PORT=8080
+      - SERVE_PORT=80
     ports:
-      - "8080:8080"
+      - "8080:80"
     network_mode: bridge
     restart: unless-stopped

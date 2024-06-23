@@ -20,7 +20,7 @@ RUN make build
 ### BASE STAGE ###
 ##################
 FROM alpine:3.20.1 AS base
-EXPOSE 8080
+EXPOSE 80
 WORKDIR /app
 COPY --from=builder /src/build/* ./
 COPY --from=builder /src/*.env ./
