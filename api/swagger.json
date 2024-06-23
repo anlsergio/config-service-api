@@ -1,0 +1,60 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "A really nice description",
+        "title": "Config Service API",
+        "contact": {
+            "name": "API Support",
+            "email": "foo@bar.com"
+        },
+        "version": "1.0"
+    },
+    "host": "config-service",
+    "basePath": "/",
+    "paths": {
+        "/configs": {
+            "get": {
+                "description": "Lists all available configs",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "config"
+                ],
+                "summary": "List configs",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/domain.Config"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "domain.Config": {
+            "type": "object",
+            "properties": {
+                "metadata": {
+                    "description": "Metadata is the arbitrary key value pairs of metadata\nthat compose a config.",
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "name": {
+                    "description": "Name is the name of the config.",
+                    "type": "string"
+                }
+            }
+        }
+    }
+}

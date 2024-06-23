@@ -43,6 +43,13 @@ func (c Config) SetRouter(r *mux.Router) {
 		Methods(http.MethodGet)
 }
 
+// @Summary List configs
+// @Description Lists all available configs
+// @Tags config
+// @Accept  json
+// @Produce  json
+// @Success 200 {object} []domain.Config
+// @Router /configs [get]
 func (c Config) list(w http.ResponseWriter, r *http.Request) {
 	configs, err := c.service.List()
 	if err != nil {

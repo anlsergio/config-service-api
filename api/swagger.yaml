@@ -1,0 +1,42 @@
+basePath: /
+definitions:
+  domain.Config:
+    properties:
+      metadata:
+        description: |-
+          Metadata is the arbitrary key value pairs of metadata
+          that compose a config.
+        items:
+          type: integer
+        type: array
+      name:
+        description: Name is the name of the config.
+        type: string
+    type: object
+host: config-service
+info:
+  contact:
+    email: foo@bar.com
+    name: API Support
+  description: A really nice description
+  title: Config Service API
+  version: "1.0"
+paths:
+  /configs:
+    get:
+      consumes:
+      - application/json
+      description: Lists all available configs
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/domain.Config'
+            type: array
+      summary: List configs
+      tags:
+      - config
+swagger: "2.0"
