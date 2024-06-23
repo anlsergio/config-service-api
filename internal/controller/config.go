@@ -46,9 +46,10 @@ func (c Config) SetRouter(r *mux.Router) {
 // @Summary List configs
 // @Description Lists all available configs
 // @Tags config
-// @Accept  json
-// @Produce  json
-// @Success 200 {object} []domain.Config
+// @Accept json
+// @Produce json
+// @Success 200 {array} domain.Config
+// @Failure 500 {string} string "Error message"
 // @Router /configs [get]
 func (c Config) list(w http.ResponseWriter, r *http.Request) {
 	configs, err := c.service.List()
@@ -72,6 +73,16 @@ func (c Config) list(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// @Summary Create a new config
+// @Description Creates a new config resource
+// @Tags config
+// @Accept json
+// @Produce json
+// @Param config body dto.Config true "Config object to be created"
+// @Success 201
+// @Failure 400 {object} string "Error message"
+// @Failure 500 {object} string "Error message"
+// @Router /configs [post]
 func (c Config) create(w http.ResponseWriter, r *http.Request) {
 	var requestBody dto.Config
 	if err := json.NewDecoder(r.Body).Decode(&requestBody); err != nil {
@@ -93,6 +104,16 @@ func (c Config) create(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 }
 
+// @Summary Get a config by name
+// @Description Gets a config resource by its name
+// @Tags config
+// @Accept json
+// @Produce json
+// @Param name path string true "Name of the config"
+// @Success 200 {object} domain.Config
+// @Failure 404 {object} string "Error message"
+// @Failure 500 {object} string "Error message"
+// @Router /configs/{name} [get]
 func (c Config) get(w http.ResponseWriter, r *http.Request) {
 	name := mux.Vars(r)["name"]
 
@@ -120,6 +141,19 @@ func (c Config) get(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// @Summary Update a config by name
+// @Description Updates a config resource by its name
+// @Tags config
+// @Accept json
+// @Produce json
+// @Param name path string true "Name of the config"
+// @Param config body dto.Config true "Updated config object"
+// @Success 200
+// @Failure 400 {object} string "Error message"
+// @Failure 404 {object} string "Error message"
+// @Failure 500 {object} string "Error message"
+// @Router /configs/{name} [put]
+// @Router /configs/{name} [patch]
 func (c Config) update(w http.ResponseWriter, r *http.Request) {
 	name := mux.Vars(r)["name"]
 
@@ -147,6 +181,15 @@ func (c Config) update(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
+// @Summary Delete a config by name
+// @Description Deletes a config resource by its name
+// @Tags config
+// @Accept json
+// @Produce json
+// @Param name path string true "Name of the config"
+// @Success 200 {string} string "Deleted"
+// @Failure 404 {object} string "Error message"
+// @Failure 500 {object} string "Error message"
 func (c Config) delete(w http.ResponseWriter, r *http.Request) {
 	name := mux.Vars(r)["name"]
 
@@ -163,6 +206,15 @@ func (c Config) delete(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
+// @Summary Query configs based on criteria
+// @Description Query all available configs based on query parameters
+// @Tags config
+// @Accept json
+// @Produce json
+// @Param metadata.key query string true "metadata.allergens.eggs=true"
+// @Success 200 {array} domain.Config
+// @Failure 500 {object} string "Error message"
+// @Router /search [get]
 func (c Config) query(w http.ResponseWriter, r *http.Request) {
 	urlQuery := r.URL.Query()
 

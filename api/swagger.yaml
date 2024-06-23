@@ -13,11 +13,21 @@ definitions:
         description: Name is the name of the config.
         type: string
     type: object
+  dto.Config:
+    properties:
+      metadata:
+        description: |-
+          Metadata is the arbitrary key value pairs of metadata
+          that compose a config.
+      name:
+        description: Name is the name of the config.
+        type: string
+    type: object
 host: config-service
 info:
   contact:
     email: foo@bar.com
-    name: API Support
+    name: Config API Support
   description: A really nice description
   title: Config Service API
   version: "1.0"
@@ -36,7 +46,166 @@ paths:
             items:
               $ref: '#/definitions/domain.Config'
             type: array
+        "500":
+          description: Error message
+          schema:
+            type: string
       summary: List configs
+      tags:
+      - config
+    post:
+      consumes:
+      - application/json
+      description: Creates a new config resource
+      parameters:
+      - description: Config object to be created
+        in: body
+        name: config
+        required: true
+        schema:
+          $ref: '#/definitions/dto.Config'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+        "400":
+          description: Error message
+          schema:
+            type: string
+        "500":
+          description: Error message
+          schema:
+            type: string
+      summary: Create a new config
+      tags:
+      - config
+  /configs/{name}:
+    get:
+      consumes:
+      - application/json
+      description: Gets a config resource by its name
+      parameters:
+      - description: Name of the config
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.Config'
+        "404":
+          description: Error message
+          schema:
+            type: string
+        "500":
+          description: Error message
+          schema:
+            type: string
+      summary: Get a config by name
+      tags:
+      - config
+    patch:
+      consumes:
+      - application/json
+      description: Updates a config resource by its name
+      parameters:
+      - description: Name of the config
+        in: path
+        name: name
+        required: true
+        type: string
+      - description: Updated config object
+        in: body
+        name: config
+        required: true
+        schema:
+          $ref: '#/definitions/dto.Config'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Error message
+          schema:
+            type: string
+        "404":
+          description: Error message
+          schema:
+            type: string
+        "500":
+          description: Error message
+          schema:
+            type: string
+      summary: Update a config by name
+      tags:
+      - config
+    put:
+      consumes:
+      - application/json
+      description: Updates a config resource by its name
+      parameters:
+      - description: Name of the config
+        in: path
+        name: name
+        required: true
+        type: string
+      - description: Updated config object
+        in: body
+        name: config
+        required: true
+        schema:
+          $ref: '#/definitions/dto.Config'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Error message
+          schema:
+            type: string
+        "404":
+          description: Error message
+          schema:
+            type: string
+        "500":
+          description: Error message
+          schema:
+            type: string
+      summary: Update a config by name
+      tags:
+      - config
+  /search:
+    get:
+      consumes:
+      - application/json
+      description: Query all available configs based on query parameters
+      parameters:
+      - description: metadata.allergens.eggs=true
+        in: query
+        name: metadata.key
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/domain.Config'
+            type: array
+        "500":
+          description: Error message
+          schema:
+            type: string
+      summary: Query configs based on criteria
       tags:
       - config
 swagger: "2.0"

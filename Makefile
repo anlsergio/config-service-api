@@ -68,3 +68,11 @@ docker-rm: docker-stop
 # Deploy the application in the local minikube cluster
 deploy-k8s: docker-build
 	./scripts/deploy-k8s.sh
+
+# Generate API Swagger documentation
+api-docs:
+	swag init --parseInternal=true \
+      --generatedTime=true \
+      --dir=cmd/http \
+      --parseDependency=true \
+      --output=api

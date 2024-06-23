@@ -35,6 +35,7 @@ func main() {
 	r := mux.NewRouter()
 	configController.SetRouter(r)
 
+	// TODO: Swagger should have it's own controller object.
 	r.PathPrefix("/swagger").Handler(httpSwagger.WrapHandler)
 
 	// start the HTTP server
