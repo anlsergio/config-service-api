@@ -225,9 +225,9 @@ func (_c *Config_Save_Call) RunAndReturn(run func(domain.Config) error) *Config_
 	return _c
 }
 
-// Search provides a mock function with given fields: property, value
-func (_m *Config) Search(property string, value string) ([]domain.Config, error) {
-	ret := _m.Called(property, value)
+// Search provides a mock function with given fields: query
+func (_m *Config) Search(query map[string]string) ([]domain.Config, error) {
+	ret := _m.Called(query)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Search")
@@ -235,19 +235,19 @@ func (_m *Config) Search(property string, value string) ([]domain.Config, error)
 
 	var r0 []domain.Config
 	var r1 error
-	if rf, ok := ret.Get(0).(func(string, string) ([]domain.Config, error)); ok {
-		return rf(property, value)
+	if rf, ok := ret.Get(0).(func(map[string]string) ([]domain.Config, error)); ok {
+		return rf(query)
 	}
-	if rf, ok := ret.Get(0).(func(string, string) []domain.Config); ok {
-		r0 = rf(property, value)
+	if rf, ok := ret.Get(0).(func(map[string]string) []domain.Config); ok {
+		r0 = rf(query)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]domain.Config)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(string, string) error); ok {
-		r1 = rf(property, value)
+	if rf, ok := ret.Get(1).(func(map[string]string) error); ok {
+		r1 = rf(query)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -261,15 +261,14 @@ type Config_Search_Call struct {
 }
 
 // Search is a helper method to define mock.On call
-//   - property string
-//   - value string
-func (_e *Config_Expecter) Search(property interface{}, value interface{}) *Config_Search_Call {
-	return &Config_Search_Call{Call: _e.mock.On("Search", property, value)}
+//   - query map[string]string
+func (_e *Config_Expecter) Search(query interface{}) *Config_Search_Call {
+	return &Config_Search_Call{Call: _e.mock.On("Search", query)}
 }
 
-func (_c *Config_Search_Call) Run(run func(property string, value string)) *Config_Search_Call {
+func (_c *Config_Search_Call) Run(run func(query map[string]string)) *Config_Search_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(string), args[1].(string))
+		run(args[0].(map[string]string))
 	})
 	return _c
 }
@@ -279,7 +278,7 @@ func (_c *Config_Search_Call) Return(_a0 []domain.Config, _a1 error) *Config_Sea
 	return _c
 }
 
-func (_c *Config_Search_Call) RunAndReturn(run func(string, string) ([]domain.Config, error)) *Config_Search_Call {
+func (_c *Config_Search_Call) RunAndReturn(run func(map[string]string) ([]domain.Config, error)) *Config_Search_Call {
 	_c.Call.Return(run)
 	return _c
 }

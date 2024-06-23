@@ -3,7 +3,6 @@ package controller
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/hellofreshdevtests/HFtest-platform-anlsergio/internal/controller/dto"
 	"github.com/hellofreshdevtests/HFtest-platform-anlsergio/internal/controller/middleware"
@@ -11,7 +10,6 @@ import (
 	"github.com/hellofreshdevtests/HFtest-platform-anlsergio/internal/service"
 	"log"
 	"net/http"
-	"strings"
 )
 
 // NewConfig creates a new Config controller instance.
@@ -159,22 +157,33 @@ func (c Config) delete(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c Config) query(w http.ResponseWriter, r *http.Request) {
-	queryParams := r.URL.Query()
+	urlQuery := r.URL.Query()
 
-	metadataParam := struct {
-		key   string
-		value string
-	}{}
-
-	// extract the query param from the URL
-	// if it starts with "metadata"
-	for k, v := range queryParams {
-		if len(v) > 0 && strings.HasPrefix(k, "metadata") {
-			metadataParam.key = k
-			metadataParam.value = v[0]
+	// convert the query params into map[string]string
+	query := make(map[string]string)
+	for k, v := range urlQuery {
+		if len(v) > 0 {
+			query[k] = v[0]
 		}
 	}
 
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(fmt.Sprintf("(query) key: %s, value: %s", metadataParam.key, metadataParam.value)))
+	configs, err := c.service.Search(query)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	bytes, err := json.Marshal(configs)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	_, err = w.Write(bytes)
+	if err != nil {
+		// TODO: replace by Uber Zap logger because of its
+		// more advanced features.
+		log.Printf("Failed to write response: %s", err.Error())
+		return
+	}
 }

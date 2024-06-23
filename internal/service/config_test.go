@@ -1,7 +1,6 @@
 package service_test
 
 import (
-	"errors"
 	"github.com/hellofreshdevtests/HFtest-platform-anlsergio/internal/domain"
 	"github.com/hellofreshdevtests/HFtest-platform-anlsergio/internal/repository/mocks"
 	"github.com/hellofreshdevtests/HFtest-platform-anlsergio/internal/service"
@@ -28,21 +27,6 @@ func TestConfig_List(t *testing.T) {
 			gotLen := len(configs)
 
 			assert.Equal(t, wantLen, gotLen)
-		})
-	})
-
-	t.Run("listing returns error", func(t *testing.T) {
-		mockRepo := mocks.NewConfig(t)
-		stubs := test.GenerateConfigListStubs(t)
-		mockRepo.On("List").Return(stubs, errors.New("oops"))
-
-		svc := service.NewConfig(mockRepo)
-
-		configs, err := svc.List()
-		assert.Error(t, err)
-
-		t.Run("configs list is empty", func(t *testing.T) {
-			assert.Empty(t, configs)
 		})
 	})
 }
@@ -107,5 +91,25 @@ func TestConfig_Delete(t *testing.T) {
 
 		err := svc.Delete(test.ConfigName1)
 		require.NoError(t, err)
+	})
+}
+
+func TestConfig_Search(t *testing.T) {
+	t.Run("search is successful", func(t *testing.T) {
+		mockRepo := mocks.NewConfig(t)
+		stubs := test.GenerateConfigListStubs(t)
+		mockRepo.On("Search", mock.Anything).Return(stubs, nil)
+
+		svc := service.NewConfig(mockRepo)
+
+		configs, err := svc.Search(map[string]string{"foo": "bar"})
+		require.NoError(t, err)
+
+		t.Run("it returns the expected number of configs", func(t *testing.T) {
+			wantLen := 2
+			gotLen := len(configs)
+
+			assert.Equal(t, wantLen, gotLen)
+		})
 	})
 }

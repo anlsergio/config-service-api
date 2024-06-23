@@ -331,21 +331,32 @@ func TestConfig(t *testing.T) {
 	})
 
 	t.Run("search configs using query params", func(t *testing.T) {
-		configController := controller.Config{}
+		customData := test.GenerateInMemoryTestData(t)
+
+		repo := repository.NewInMemoryConfig(repository.WithCustomData(customData))
+		svc := service.NewConfig(repo)
+		configController := controller.NewConfig(svc)
 
 		r := mux.NewRouter()
 		configController.SetRouter(r)
 
-		wantKey := "metadata.foo"
-		wantValue := "bar"
-
-		req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/search?%s=%s", wantKey, wantValue), nil)
+		target := fmt.Sprintf("/search?metadata.allergens.eggs=true&metadata.fats.saturated-fat=0g")
+		req := httptest.NewRequest(http.MethodGet, target, nil)
 		rr := httptest.NewRecorder()
 		r.ServeHTTP(rr, req)
 
-		assert.Equal(t, http.StatusOK, rr.Code)
+		t.Run("http status is OK", func(t *testing.T) {
+			assert.Equal(t, http.StatusOK, rr.Code)
+		})
 
-		assert.Contains(t, rr.Body.String(), wantKey)
-		assert.Contains(t, rr.Body.String(), wantValue)
+		t.Run("it returns the expected number of configs", func(t *testing.T) {
+			wantLen := 1
+
+			var responseConfigs []domain.Config
+			err := json.Unmarshal(rr.Body.Bytes(), &responseConfigs)
+			require.NoError(t, err)
+
+			assert.Equal(t, wantLen, len(responseConfigs))
+		})
 	})
 }

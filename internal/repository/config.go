@@ -3,6 +3,7 @@ package repository
 import (
 	"errors"
 	"github.com/hellofreshdevtests/HFtest-platform-anlsergio/internal/domain"
+	"strings"
 	"sync"
 )
 
@@ -27,11 +28,11 @@ type Config interface {
 	Update(name string, metadata []byte) error
 	// Delete deletes a given config by its name.
 	Delete(name string) error
-	// Search fetches all configs that match the property/value combination.
+	// Search fetches all configs that match the key/value combination in query.
 	//
-	// repository.Search("metadata.monitoring", "true")
+	// repository.Search(map[string]string{"metadata.monitoring", "true"})
 	// TODO: generate Godoc example
-	Search(property, value string) ([]domain.Config, error)
+	Search(query map[string]string) ([]domain.Config, error)
 }
 
 // NewInMemoryConfig returns a InMemoryConfig repository instance.
@@ -151,7 +152,37 @@ func (i *InMemoryConfig) Delete(name string) error {
 	return nil
 }
 
-func (i *InMemoryConfig) Search(property, value string) ([]domain.Config, error) {
-	//TODO implement me
-	panic("implement me")
+// Search gets all configs from the in-memory datastore that match the key/value pairs
+// in query.
+func (i *InMemoryConfig) Search(query map[string]string) ([]domain.Config, error) {
+	i.mu.Lock()
+	defer i.mu.Unlock()
+
+	var configs []domain.Config
+
+	// loop through all the stored configs
+	// and for every key/value pair in query
+	// check if the corresponding value for the given key
+	// in metadata matches the expected value.
+out:
+	for _, c := range i.configs {
+		for k, v := range query {
+			// remove the metadata prefix because it's redundant
+			// because the method already expects the search to be made
+			// in metadata.
+			k = strings.TrimPrefix(k, "metadata.")
+			// TODO: extract a function for better code readability.
+			foundValue := c.MetadataValue(k)
+			// if any of the key/value combinations
+			// doesn't find a match, skip adding the corresponding config.
+			if foundValue == nil || foundValue.(string) != v {
+				continue out
+			}
+		}
+		// if the current config passes all query validations
+		// added to the list.
+		configs = append(configs, c)
+	}
+
+	return configs, nil
 }

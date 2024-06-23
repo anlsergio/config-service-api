@@ -104,7 +104,6 @@ func TestInMemoryConfig_Delete(t *testing.T) {
 	repo := repository.NewInMemoryConfig(repository.WithCustomData(customData))
 
 	t.Run("config is deleted", func(t *testing.T) {
-
 		configs, err := repo.List()
 		require.NoError(t, err)
 
@@ -129,4 +128,62 @@ func TestInMemoryConfig_Delete(t *testing.T) {
 			assert.ErrorIs(t, err, repository.ErrConfigNotFound)
 		})
 	})
+}
+
+func TestInMemoryConfig_Search(t *testing.T) {
+	customData := test.GenerateInMemoryTestData(t)
+	repo := repository.NewInMemoryConfig(repository.WithCustomData(customData))
+
+	tests := []struct {
+		name           string
+		query          map[string]string
+		wantConfigsLen int
+	}{
+		{
+			name:           "matching configs are found",
+			query:          map[string]string{"abc": "123"},
+			wantConfigsLen: 2,
+		},
+		{
+			name:           "only one matching config is found",
+			query:          map[string]string{"enabled": "true"},
+			wantConfigsLen: 1,
+		},
+		{
+			name:           "no matching config is found",
+			query:          map[string]string{"enabled": "false"},
+			wantConfigsLen: 0,
+		},
+		{
+			name:           "only one matching config with nested keys is found",
+			query:          map[string]string{"allergens.eggs": "true"},
+			wantConfigsLen: 1,
+		},
+		{
+			name: "only 1 config matching multiple key/value pairs",
+			query: map[string]string{
+				"abc":         "123",
+				"obj.aaa.bbb": "ccc",
+			},
+			wantConfigsLen: 1,
+		},
+		{
+			name: "not corresponding match multiple key/value pairs",
+			query: map[string]string{
+				"abc":         "123",
+				"obj.aaa.bbb": "ccc",
+				"enabled":     "false",
+			},
+			wantConfigsLen: 0,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			foundConfigs, err := repo.Search(tt.query)
+			require.NoError(t, err)
+
+			assert.Len(t, foundConfigs, tt.wantConfigsLen)
+		})
+	}
 }

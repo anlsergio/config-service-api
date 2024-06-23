@@ -1,7 +1,6 @@
 package service
 
 import (
-	"fmt"
 	"github.com/hellofreshdevtests/HFtest-platform-anlsergio/internal/domain"
 	"github.com/hellofreshdevtests/HFtest-platform-anlsergio/internal/repository"
 )
@@ -19,12 +18,7 @@ type Config struct {
 
 // List gets a list of configs.
 func (c Config) List() ([]domain.Config, error) {
-	configs, err := c.repo.List()
-	if err != nil {
-		return nil, fmt.Errorf("service failed to list configs: %w", err)
-	}
-
-	return configs, nil
+	return c.repo.List()
 }
 
 // Create creates a new config according to cfg.
@@ -45,4 +39,11 @@ func (c Config) Update(name string, metadata []byte) error {
 // Delete removes the config identified by name.
 func (c Config) Delete(name string) error {
 	return c.repo.Delete(name)
+}
+
+// Search gets a list of configs matching the query key/value pairs,
+// where key represents the nested property in metadata, and value is the
+// value that should match.
+func (c Config) Search(query map[string]string) ([]domain.Config, error) {
+	return c.repo.Search(query)
 }
