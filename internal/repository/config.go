@@ -12,6 +12,11 @@ var (
 	ErrConfigNotFound = errors.New("config not found")
 )
 
+var (
+	db         *inMemoryDBState
+	initDBOnce sync.Once
+)
+
 // Config is the port defining the I/O operations
 // for the domain.Config resource.
 //
@@ -38,17 +43,13 @@ type Config interface {
 // NewInMemoryConfig returns a InMemoryConfig repository instance.
 // Use InMemoryOption options to use custom settings.
 func NewInMemoryConfig(opts ...InMemoryOption) Config {
-	c := &InMemoryConfig{}
+	c := &InMemoryConfig{
+		db: getInMemoryDBState(),
+	}
 
 	// apply options sent by the user if there's any.
 	for _, opt := range opts {
 		opt(c)
-	}
-
-	// if no custom data is provided
-	// initialize the configs datasource.
-	if c.configs == nil {
-		c.configs = make(map[string]domain.Config)
 	}
 
 	return c
@@ -62,26 +63,23 @@ type InMemoryOption func(c *InMemoryConfig)
 // the InMemoryConfig repository.
 func WithCustomData(configs map[string]domain.Config) InMemoryOption {
 	return func(c *InMemoryConfig) {
-		c.configs = configs
+		c.db.configs = configs
 	}
 }
 
 // InMemoryConfig defines the in-memory implementation of Config.
 type InMemoryConfig struct {
-	// used to protect the map from race conditions.
-	mu sync.Mutex
-	// TODO: improve the hashmap to avoid the redundant name as the key
-	configs map[string]domain.Config
+	db *inMemoryDBState
 }
 
 // List fetches all available configs from an in-memory datastore.
 func (i *InMemoryConfig) List() ([]domain.Config, error) {
-	i.mu.Lock()
-	defer i.mu.Unlock()
+	i.db.lock()
+	defer i.db.unlock()
 
 	var configs []domain.Config
 
-	for _, c := range i.configs {
+	for _, c := range i.db.configs {
 		configs = append(configs, c)
 	}
 
@@ -90,10 +88,10 @@ func (i *InMemoryConfig) List() ([]domain.Config, error) {
 
 // Save persists a config into an in-memory datastore.
 func (i *InMemoryConfig) Save(cfg domain.Config) error {
-	i.mu.Lock()
-	defer i.mu.Unlock()
+	i.db.lock()
+	defer i.db.unlock()
 
-	i.configs[cfg.Name] = cfg
+	i.db.configs[cfg.Name] = cfg
 
 	return nil
 }
@@ -101,10 +99,10 @@ func (i *InMemoryConfig) Save(cfg domain.Config) error {
 // Get fetches a config from the in-memory datastore.
 // If the resource is not found, it returns ErrConfigNotFound.
 func (i *InMemoryConfig) Get(name string) (domain.Config, error) {
-	i.mu.Lock()
-	defer i.mu.Unlock()
+	i.db.lock()
+	defer i.db.unlock()
 
-	config, ok := i.configs[name]
+	config, ok := i.db.configs[name]
 	if !ok {
 		return domain.Config{}, ErrConfigNotFound
 	}
@@ -119,11 +117,11 @@ func (i *InMemoryConfig) Get(name string) (domain.Config, error) {
 // TODO: perhaps the Update method should only expect a metadata
 // not the whole domain.Config object.
 func (i *InMemoryConfig) Update(name string, metadata []byte) error {
-	i.mu.Lock()
-	defer i.mu.Unlock()
+	i.db.lock()
+	defer i.db.unlock()
 
 	// make sure the resource exists in the first place.
-	existingConfig, ok := i.configs[name]
+	existingConfig, ok := i.db.configs[name]
 	if !ok {
 		return ErrConfigNotFound
 	}
@@ -131,23 +129,23 @@ func (i *InMemoryConfig) Update(name string, metadata []byte) error {
 	// preserve existing config name
 	// because it's the only identifier at this point.
 	existingConfig.Metadata = metadata
-	i.configs[name] = existingConfig
+	i.db.configs[name] = existingConfig
 
 	return nil
 }
 
 // Delete removes a given config from the in-memory datastore, based on its name.
 func (i *InMemoryConfig) Delete(name string) error {
-	i.mu.Lock()
-	defer i.mu.Unlock()
+	i.db.lock()
+	defer i.db.unlock()
 
 	// make sure the resource exists in the first place.
-	_, ok := i.configs[name]
+	_, ok := i.db.configs[name]
 	if !ok {
 		return ErrConfigNotFound
 	}
 
-	delete(i.configs, name)
+	delete(i.db.configs, name)
 
 	return nil
 }
@@ -155,8 +153,8 @@ func (i *InMemoryConfig) Delete(name string) error {
 // Search gets all configs from the in-memory datastore that match the key/value pairs
 // in query.
 func (i *InMemoryConfig) Search(query map[string]string) ([]domain.Config, error) {
-	i.mu.Lock()
-	defer i.mu.Unlock()
+	i.db.lock()
+	defer i.db.unlock()
 
 	var configs []domain.Config
 
@@ -165,7 +163,7 @@ func (i *InMemoryConfig) Search(query map[string]string) ([]domain.Config, error
 	// check if the corresponding value for the given key
 	// in metadata matches the expected value.
 out:
-	for _, c := range i.configs {
+	for _, c := range i.db.configs {
 		for k, v := range query {
 			// remove the metadata prefix because it's redundant
 			// because the method already expects the search to be made
@@ -185,4 +183,36 @@ out:
 	}
 
 	return configs, nil
+}
+
+// inMemoryDBState holds the in-memory DB state for the lifecycle
+// of the application.
+type inMemoryDBState struct {
+	// used to protect the map from race conditions.
+	mu      sync.Mutex
+	configs map[string]domain.Config
+}
+
+// lock the operation on the db until the token is released.
+func (i *inMemoryDBState) lock() {
+	i.mu.Lock()
+}
+
+// unlock releases the token, allowing another go routine
+// to manipulate data.
+func (i *inMemoryDBState) unlock() {
+	i.mu.Unlock()
+}
+
+// getInMemoryDBState is a singleton to get the same
+// in-memory DB state.
+func getInMemoryDBState() *inMemoryDBState {
+	// ensures that the db is initialized only once.
+	initDBOnce.Do(func() {
+		db = &inMemoryDBState{
+			configs: make(map[string]domain.Config),
+		}
+	})
+
+	return db
 }
