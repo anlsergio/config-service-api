@@ -64,3 +64,7 @@ docker-stop:
 # Removes the container.
 docker-rm: docker-stop
 	docker rm config-service
+
+# Deploy the application in the local minikube cluster
+deploy-k8s: docker-build
+	./scripts/deploy-k8s.sh
