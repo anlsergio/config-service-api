@@ -4,7 +4,7 @@ import (
 	"github.com/hellofreshdevtests/HFtest-platform-anlsergio/internal/domain"
 	"github.com/hellofreshdevtests/HFtest-platform-anlsergio/internal/repository/mocks"
 	"github.com/hellofreshdevtests/HFtest-platform-anlsergio/internal/service"
-	"github.com/hellofreshdevtests/HFtest-platform-anlsergio/test"
+	"github.com/hellofreshdevtests/HFtest-platform-anlsergio/internal/test"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"

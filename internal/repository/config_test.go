@@ -3,7 +3,7 @@ package repository_test
 import (
 	"github.com/hellofreshdevtests/HFtest-platform-anlsergio/internal/domain"
 	"github.com/hellofreshdevtests/HFtest-platform-anlsergio/internal/repository"
-	"github.com/hellofreshdevtests/HFtest-platform-anlsergio/test"
+	"github.com/hellofreshdevtests/HFtest-platform-anlsergio/internal/test"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"testing"
