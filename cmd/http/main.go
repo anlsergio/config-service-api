@@ -13,7 +13,7 @@ import (
 
 func main() {
 	// Load the application configuration params
-	cfg := config.NewAppConfig(".")
+	cfg := config.NewAppConfig()
 
 	// set the config controller handlers injecting the dependency
 	// in the router
