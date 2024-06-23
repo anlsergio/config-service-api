@@ -1,0 +1,16 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: config-app-ingress
+spec:
+  rules:
+    - host: config-service
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: config-app-svc
+                port:
+                  number: 80
