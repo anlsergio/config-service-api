@@ -10,6 +10,8 @@ import (
 var (
 	// ErrConfigNotFound is used when a given config doesn't exist.
 	ErrConfigNotFound = errors.New("config not found")
+	// ErrConfigExists is used when there's already an existing resource with the same name.
+	ErrConfigExists = errors.New("config already exists")
 )
 
 var (
@@ -86,9 +88,17 @@ func (i *InMemoryConfig) List() ([]domain.Config, error) {
 }
 
 // Save persists a config into an in-memory datastore.
+// If there's a config with the same name, it won't be allowed
+// to be created returning ErrConfigExists.
 func (i *InMemoryConfig) Save(cfg domain.Config) error {
 	i.db.lock()
 	defer i.db.unlock()
+
+	// make sure there's no existing resource with the same name.
+	_, ok := i.db.configs[cfg.Name]
+	if ok {
+		return ErrConfigExists
+	}
 
 	i.db.configs[cfg.Name] = cfg
 

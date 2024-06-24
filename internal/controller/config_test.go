@@ -7,6 +7,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/hellofreshdevtests/HFtest-platform-anlsergio/internal/controller"
 	"github.com/hellofreshdevtests/HFtest-platform-anlsergio/internal/controller/dto"
+	"github.com/hellofreshdevtests/HFtest-platform-anlsergio/internal/domain"
 	"github.com/hellofreshdevtests/HFtest-platform-anlsergio/internal/repository"
 	"github.com/hellofreshdevtests/HFtest-platform-anlsergio/internal/repository/mocks"
 	"github.com/hellofreshdevtests/HFtest-platform-anlsergio/internal/service"
@@ -80,7 +81,7 @@ func TestConfig(t *testing.T) {
 
 	t.Run("create config", func(t *testing.T) {
 		t.Run("creation is successful", func(t *testing.T) {
-			repo := repository.NewInMemoryConfig()
+			repo := repository.NewInMemoryConfig(repository.WithCustomData(make(map[string]domain.Config)))
 			svc := service.NewConfig(repo)
 			configController := controller.NewConfig(svc)
 

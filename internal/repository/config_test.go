@@ -23,18 +23,44 @@ func TestInMemoryConfig_List(t *testing.T) {
 }
 
 func TestInMemoryConfig_Save(t *testing.T) {
-	repo := repository.NewInMemoryConfig()
+	t.Run("config is saved", func(t *testing.T) {
+		repo := repository.NewInMemoryConfig(repository.WithCustomData(make(map[string]domain.Config)))
 
-	toCreateConfig := domain.Config{
-		Name:     "config 1",
-		Metadata: []byte(`{"foo": "bar"}`),
-	}
-	require.NoError(t, repo.Save(toCreateConfig))
+		toCreateConfig := domain.Config{
+			Name:     "config 1",
+			Metadata: []byte(`{"foo": "bar"}`),
+		}
+		require.NoError(t, repo.Save(toCreateConfig))
 
-	t.Run("created config is the expected config", func(t *testing.T) {
-		config, err := repo.Get(toCreateConfig.Name)
-		require.NoError(t, err)
-		assert.Equal(t, toCreateConfig, config)
+		t.Run("created config is the expected config", func(t *testing.T) {
+			config, err := repo.Get(toCreateConfig.Name)
+			require.NoError(t, err)
+			assert.Equal(t, toCreateConfig, config)
+		})
+	})
+
+	t.Run("config already exists", func(t *testing.T) {
+		configs := map[string]domain.Config{
+			"config 1": {
+				Name:     "config 1",
+				Metadata: []byte(`{"foo": "bar"}`),
+			},
+		}
+
+		repo := repository.NewInMemoryConfig(repository.WithCustomData(configs))
+
+		// try saving another config with an existing name
+		toCreateConfig := domain.Config{
+			Name:     "config 1",
+			Metadata: []byte(`{"another": "metadata"}`),
+		}
+		require.Error(t, repo.Save(toCreateConfig))
+
+		t.Run("existing config is not replaced", func(t *testing.T) {
+			config, err := repo.Get(toCreateConfig.Name)
+			require.NoError(t, err)
+			assert.NotContains(t, string(config.Metadata), "another")
+		})
 	})
 }
 
