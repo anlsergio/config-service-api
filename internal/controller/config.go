@@ -161,7 +161,7 @@ func (c Config) get(w http.ResponseWriter, r *http.Request) {
 // @Accept json
 // @Produce json
 // @Param name path string true "Name of the config"
-// @Param config body dto.Config true "Updated config object"
+// @Param config body dto.Metadata true "Metadata"
 // @Success 200
 // @Failure 400 {object} string "Error message"
 // @Failure 404 {object} string "Error message"
@@ -171,19 +171,19 @@ func (c Config) get(w http.ResponseWriter, r *http.Request) {
 func (c Config) update(w http.ResponseWriter, r *http.Request) {
 	name := mux.Vars(r)["name"]
 
-	var requestBody dto.Config
+	var requestBody dto.Metadata
 	if err := json.NewDecoder(r.Body).Decode(&requestBody); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	form, err := requestBody.ToDomainConfig()
+	metadataBytes, err := requestBody.ToByteSlice()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	if err := c.service.Update(name, form.Metadata); err != nil {
+	if err := c.service.Update(name, metadataBytes); err != nil {
 		if errors.Is(err, repository.ErrConfigNotFound) {
 			http.Error(w, err.Error(), http.StatusNotFound)
 			return
@@ -265,8 +265,6 @@ func (c Config) query(w http.ResponseWriter, r *http.Request) {
 
 	_, err = w.Write(bytes)
 	if err != nil {
-		// TODO: replace by Uber Zap logger because of its
-		// more advanced features.
 		log.Printf("Failed to write response: %s", err.Error())
 		return
 	}

@@ -149,12 +149,12 @@
                         "required": true
                     },
                     {
-                        "description": "Updated config object",
+                        "description": "Metadata",
                         "name": "config",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dto.Config"
+                            "$ref": "#/definitions/dto.Metadata"
                         }
                     }
                 ],
@@ -242,12 +242,12 @@
                         "required": true
                     },
                     {
-                        "description": "Updated config object",
+                        "description": "Metadata",
                         "name": "config",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dto.Config"
+                            "$ref": "#/definitions/dto.Metadata"
                         }
                     }
                 ],
@@ -332,6 +332,10 @@
                     "type": "string"
                 }
             }
+        },
+        "dto.Metadata": {
+            "type": "object",
+            "additionalProperties": {}
         }
     }
 }

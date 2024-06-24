@@ -36,7 +36,6 @@ type Config interface {
 	// Search fetches all configs that match the key/value combination in query.
 	//
 	// repository.Search(map[string]string{"metadata.monitoring", "true"})
-	// TODO: generate Godoc example
 	Search(query map[string]string) ([]domain.Config, error)
 }
 
@@ -113,9 +112,6 @@ func (i *InMemoryConfig) Get(name string) (domain.Config, error) {
 // Update updates a config in the in-memory datastore, based on its name,
 // applying what's defined in metadata.
 // If the resource is not found, it returns ErrConfigNotFound.
-//
-// TODO: perhaps the Update method should only expect a metadata
-// not the whole domain.Config object.
 func (i *InMemoryConfig) Update(name string, metadata []byte) error {
 	i.db.lock()
 	defer i.db.unlock()

@@ -41,7 +41,7 @@ func main() {
 	r := mux.NewRouter()
 	configController.SetRouter(r)
 
-	// TODO: Swagger should have it's own controller object.
+	// Set the Swagger endpoint to render the OpenAPI specs.
 	r.PathPrefix("/swagger").Handler(httpSwagger.WrapHandler)
 
 	// start the HTTP server

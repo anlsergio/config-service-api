@@ -4,7 +4,6 @@
 FROM golang:1.22.4-alpine AS builder
 RUN apk update && \
     apk add --no-cache make
-# TODO: install delve and create dev stage?
 WORKDIR /src
 # Copy Go dependencies definitions separately to take
 # advantage of image layer caching

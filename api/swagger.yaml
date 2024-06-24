@@ -12,6 +12,9 @@ definitions:
         description: Name is the name of the config.
         type: string
     type: object
+  dto.Metadata:
+    additionalProperties: {}
+    type: object
 host: config-service
 info:
   contact:
@@ -134,12 +137,12 @@ paths:
         name: name
         required: true
         type: string
-      - description: Updated config object
+      - description: Metadata
         in: body
         name: config
         required: true
         schema:
-          $ref: '#/definitions/dto.Config'
+          $ref: '#/definitions/dto.Metadata'
       produces:
       - application/json
       responses:
@@ -170,12 +173,12 @@ paths:
         name: name
         required: true
         type: string
-      - description: Updated config object
+      - description: Metadata
         in: body
         name: config
         required: true
         schema:
-          $ref: '#/definitions/dto.Config'
+          $ref: '#/definitions/dto.Metadata'
       produces:
       - application/json
       responses:

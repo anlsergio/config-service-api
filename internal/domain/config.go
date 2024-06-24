@@ -21,7 +21,6 @@ type Config struct {
 // where each dot represents each key node in a different nest level.
 //
 // It returns nil if no matching value is found.
-// TODO: generate Godoc example.
 func (c Config) MetadataValue(key string) any {
 	// break down the nested key format
 	// into separate distinct keys.
