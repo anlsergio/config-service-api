@@ -31,7 +31,7 @@
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/domain.Config"
+                                "$ref": "#/definitions/dto.Config"
                             }
                         }
                     },
@@ -111,7 +111,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.Config"
+                            "$ref": "#/definitions/dto.Config"
                         }
                     },
                     "404": {
@@ -167,6 +167,45 @@
                         "schema": {
                             "type": "string"
                         }
+                    },
+                    "404": {
+                        "description": "Error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Deletes a config resource by its name",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "config"
+                ],
+                "summary": "Delete a config by name",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Name of the config",
+                        "name": "name",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
                     },
                     "404": {
                         "description": "Error message",
@@ -252,9 +291,9 @@
                 "summary": "Query configs based on criteria",
                 "parameters": [
                     {
-                        "type": "string",
-                        "description": "metadata.allergens.eggs=true",
-                        "name": "metadata.key",
+                        "type": "object",
+                        "description": "Metadata filters not represented appropriately, due to limitations in OpenAPI 2.x. But it's a free key/value pair of strings",
+                        "name": "keyValuePairs",
                         "in": "query",
                         "required": true
                     }
@@ -265,7 +304,7 @@
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/domain.Config"
+                                "$ref": "#/definitions/dto.Config"
                             }
                         }
                     },
@@ -280,27 +319,13 @@
         }
     },
     "definitions": {
-        "domain.Config": {
-            "type": "object",
-            "properties": {
-                "metadata": {
-                    "description": "Metadata is the arbitrary key value pairs of metadata\nthat compose a config.",
-                    "type": "array",
-                    "items": {
-                        "type": "integer"
-                    }
-                },
-                "name": {
-                    "description": "Name is the name of the config.",
-                    "type": "string"
-                }
-            }
-        },
         "dto.Config": {
             "type": "object",
             "properties": {
                 "metadata": {
-                    "description": "Metadata is the arbitrary key value pairs of metadata\nthat compose a config."
+                    "description": "Metadata is the arbitrary key value pairs of metadata\nthat compose a config.",
+                    "type": "object",
+                    "additionalProperties": {}
                 },
                 "name": {
                     "description": "Name is the name of the config.",

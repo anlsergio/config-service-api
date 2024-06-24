@@ -48,7 +48,7 @@ func (c Config) SetRouter(r *mux.Router) {
 // @Tags config
 // @Accept json
 // @Produce json
-// @Success 200 {array} domain.Config
+// @Success 200 {array} dto.Config
 // @Failure 500 {string} string "Error message"
 // @Router /configs [get]
 func (c Config) list(w http.ResponseWriter, r *http.Request) {
@@ -118,7 +118,7 @@ func (c Config) create(w http.ResponseWriter, r *http.Request) {
 // @Accept json
 // @Produce json
 // @Param name path string true "Name of the config"
-// @Success 200 {object} domain.Config
+// @Success 200 {object} dto.Config
 // @Failure 404 {object} string "Error message"
 // @Failure 500 {object} string "Error message"
 // @Router /configs/{name} [get]
@@ -201,9 +201,10 @@ func (c Config) update(w http.ResponseWriter, r *http.Request) {
 // @Accept json
 // @Produce json
 // @Param name path string true "Name of the config"
-// @Success 200 {string} string "Deleted"
+// @Success 200
 // @Failure 404 {object} string "Error message"
 // @Failure 500 {object} string "Error message"
+// @Router /configs/{name} [delete]
 func (c Config) delete(w http.ResponseWriter, r *http.Request) {
 	name := mux.Vars(r)["name"]
 
@@ -225,8 +226,8 @@ func (c Config) delete(w http.ResponseWriter, r *http.Request) {
 // @Tags config
 // @Accept json
 // @Produce json
-// @Param metadata.key query string true "metadata.allergens.eggs=true"
-// @Success 200 {array} domain.Config
+// @Param keyValuePairs query object true "Metadata filters not represented appropriately, due to limitations in OpenAPI 2.x. But it's a free key/value pair of strings"
+// @Success 200 {array} dto.Config
 // @Failure 500 {object} string "Error message"
 // @Router /search [get]
 func (c Config) query(w http.ResponseWriter, r *http.Request) {

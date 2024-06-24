@@ -1,24 +1,13 @@
 basePath: /
 definitions:
-  domain.Config:
-    properties:
-      metadata:
-        description: |-
-          Metadata is the arbitrary key value pairs of metadata
-          that compose a config.
-        items:
-          type: integer
-        type: array
-      name:
-        description: Name is the name of the config.
-        type: string
-    type: object
   dto.Config:
     properties:
       metadata:
+        additionalProperties: {}
         description: |-
           Metadata is the arbitrary key value pairs of metadata
           that compose a config.
+        type: object
       name:
         description: Name is the name of the config.
         type: string
@@ -44,7 +33,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/domain.Config'
+              $ref: '#/definitions/dto.Config'
             type: array
         "500":
           description: Error message
@@ -81,6 +70,32 @@ paths:
       tags:
       - config
   /configs/{name}:
+    delete:
+      consumes:
+      - application/json
+      description: Deletes a config resource by its name
+      parameters:
+      - description: Name of the config
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "404":
+          description: Error message
+          schema:
+            type: string
+        "500":
+          description: Error message
+          schema:
+            type: string
+      summary: Delete a config by name
+      tags:
+      - config
     get:
       consumes:
       - application/json
@@ -97,7 +112,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/domain.Config'
+            $ref: '#/definitions/dto.Config'
         "404":
           description: Error message
           schema:
@@ -187,11 +202,12 @@ paths:
       - application/json
       description: Query all available configs based on query parameters
       parameters:
-      - description: metadata.allergens.eggs=true
+      - description: Metadata filters not represented appropriately, due to limitations
+          in OpenAPI 2.x. But it's a free key/value pair of strings
         in: query
-        name: metadata.key
+        name: keyValuePairs
         required: true
-        type: string
+        type: object
       produces:
       - application/json
       responses:
@@ -199,7 +215,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/domain.Config'
+              $ref: '#/definitions/dto.Config'
             type: array
         "500":
           description: Error message
