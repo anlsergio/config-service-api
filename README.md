@@ -42,7 +42,12 @@ Last but not least, update your local hosts file, so that your internal DNS tran
 echo "$(minikube ip) config-service" | sudo tee -a /etc/hosts
 ```
 
-> For the complete list of helpers available, make sure to check out the `Makefile`.
+### Helper Scripts
+
+For commonly used tasks and commands, there are quite a few helper commands added to the `Makefile` 
+of this project available for the `make` command, so make sure to check the file out to get to know the full list.
+
+### Running the project
 
 <details>
 
