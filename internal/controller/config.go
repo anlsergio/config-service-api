@@ -58,7 +58,17 @@ func (c Config) list(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	bytes, err := json.Marshal(configs)
+	var responseConfigs []dto.Config
+	for _, config := range configs {
+		dtoConfig, err := dto.FromDomainConfig(config)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		responseConfigs = append(responseConfigs, dtoConfig)
+	}
+
+	bytes, err := json.Marshal(responseConfigs)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -66,8 +76,6 @@ func (c Config) list(w http.ResponseWriter, r *http.Request) {
 
 	_, err = w.Write(bytes)
 	if err != nil {
-		// TODO: replace by Uber Zap logger because of its
-		// more advanced features.
 		log.Printf("Failed to write response: %s", err.Error())
 		return
 	}
@@ -90,7 +98,7 @@ func (c Config) create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	config, err := dto.ToDomainConfig(requestBody)
+	config, err := requestBody.ToDomainConfig()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -127,7 +135,13 @@ func (c Config) get(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	bytes, err := json.Marshal(config)
+	responseConfig, err := dto.FromDomainConfig(config)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	bytes, err := json.Marshal(responseConfig)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -163,7 +177,7 @@ func (c Config) update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	form, err := dto.ToDomainConfig(requestBody)
+	form, err := requestBody.ToDomainConfig()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -232,7 +246,17 @@ func (c Config) query(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	bytes, err := json.Marshal(configs)
+	var responseConfigs []dto.Config
+	for _, config := range configs {
+		dtoConfig, err := dto.FromDomainConfig(config)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		responseConfigs = append(responseConfigs, dtoConfig)
+	}
+
+	bytes, err := json.Marshal(responseConfigs)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

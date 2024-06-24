@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/hellofreshdevtests/HFtest-platform-anlsergio/internal/controller"
-	"github.com/hellofreshdevtests/HFtest-platform-anlsergio/internal/domain"
+	"github.com/hellofreshdevtests/HFtest-platform-anlsergio/internal/controller/dto"
 	"github.com/hellofreshdevtests/HFtest-platform-anlsergio/internal/repository"
 	"github.com/hellofreshdevtests/HFtest-platform-anlsergio/internal/repository/mocks"
 	"github.com/hellofreshdevtests/HFtest-platform-anlsergio/internal/service"
@@ -37,6 +37,10 @@ func TestConfig(t *testing.T) {
 			rr := httptest.NewRecorder()
 			r.ServeHTTP(rr, req)
 
+			var responseConfigs []dto.Config
+			err := json.Unmarshal(rr.Body.Bytes(), &responseConfigs)
+			require.NoError(t, err)
+
 			t.Run("http status is OK", func(t *testing.T) {
 				assert.Equal(t, http.StatusOK, rr.Code)
 			})
@@ -44,11 +48,13 @@ func TestConfig(t *testing.T) {
 			t.Run("it returns the expected number of configs", func(t *testing.T) {
 				wantLen := len(customData)
 
-				var responseConfigs []domain.Config
-				err := json.Unmarshal(rr.Body.Bytes(), &responseConfigs)
-				require.NoError(t, err)
-
 				assert.Equal(t, wantLen, len(responseConfigs))
+			})
+
+			t.Run("metadata is properly serialized", func(t *testing.T) {
+				for _, c := range responseConfigs {
+					assert.NotEmpty(t, c.Metadata)
+				}
 			})
 		})
 
@@ -352,7 +358,7 @@ func TestConfig(t *testing.T) {
 		t.Run("it returns the expected number of configs", func(t *testing.T) {
 			wantLen := 1
 
-			var responseConfigs []domain.Config
+			var responseConfigs []dto.Config
 			err := json.Unmarshal(rr.Body.Bytes(), &responseConfigs)
 			require.NoError(t, err)
 

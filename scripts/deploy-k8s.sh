@@ -6,7 +6,6 @@ set -o pipefail
 ############################
 ### Script config params ###
 ############################
-LOCAL_APP_IMAGE_NAME=config-service
 # initialize the PID to avoid unintended behavior.
 PORT_FORWARDING_PID=0
 REGISTRY_HOST=localhost
@@ -14,7 +13,13 @@ REGISTRY_HOST=localhost
 # be available.
 REGISTRY_HOST_CHECK_TIMEOUT=5
 REGISTRY_PORT=5000
+
 K8S_MANIFESTS_DIR=./k8s
+K8S_DEPLOYMENT_NAME=config-app-deployment
+
+LOCAL_APP_IMAGE_NAME=config-service
+FULL_IMAGE_NAME=$REGISTRY_HOST:$REGISTRY_PORT/$LOCAL_APP_IMAGE_NAME:latest
+
 
 # This function blocks the execution until
 # the registry host is available for connection.
@@ -76,18 +81,19 @@ fi
 # uploaded to the registry:
 # TODO: make sure the deployment will pull the latest image
 # for every new deploy.
-docker tag $LOCAL_APP_IMAGE_NAME $REGISTRY_HOST:$REGISTRY_PORT/$LOCAL_APP_IMAGE_NAME:latest
+docker tag $LOCAL_APP_IMAGE_NAME $FULL_IMAGE_NAME
 
 # Push the image to the Minikube registry
-docker push $REGISTRY_HOST:$REGISTRY_PORT/$LOCAL_APP_IMAGE_NAME:latest
+docker push $FULL_IMAGE_NAME
+
+# Delete an existing deployment, if there's any.
+if kubectl get deployment $K8S_DEPLOYMENT_NAME
+then
+  kubectl delete deployment $K8S_DEPLOYMENT_NAME
+fi
 
 # Apply the K8s manifests to deploy the application.
 kubectl apply -f $K8S_MANIFESTS_DIR
-
-# Force a deployment rollout even if there are no changes to the manifests.
-# TODO: keep this hackish approach?
-kubectl set image deployment/config-app-deployment \
-  config-server=$REGISTRY_HOST:$REGISTRY_PORT/$LOCAL_APP_IMAGE_NAME:latest
 
 # Kill the background port forwarding process after deploy is concluded.
 stopPortForwarding
