@@ -175,7 +175,6 @@ out:
 			// because the method already expects the search to be made
 			// in metadata.
 			k = strings.TrimPrefix(k, "metadata.")
-			// TODO: extract a function for better code readability.
 			foundValue := c.MetadataValue(k)
 			// if any of the key/value combinations
 			// doesn't find a match, skip adding the corresponding config.

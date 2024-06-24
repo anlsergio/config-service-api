@@ -27,8 +27,6 @@ type Config struct {
 // SetRouter returns the router r with all the necessary routes for the
 // Config controller setup.
 func (c Config) SetRouter(r *mux.Router) {
-	// TODO: create an object Route to better organize these
-	// routes
 	r.HandleFunc("/configs", middleware.SetJSONContent(c.list)).
 		Methods(http.MethodGet)
 	r.HandleFunc("/configs", middleware.SetJSONContent(c.create)).

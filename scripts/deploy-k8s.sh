@@ -79,8 +79,6 @@ fi
 
 # Tag the local docker image as the pattern that will be
 # uploaded to the registry:
-# TODO: make sure the deployment will pull the latest image
-# for every new deploy.
 docker tag $LOCAL_APP_IMAGE_NAME $FULL_IMAGE_NAME
 
 # Push the image to the Minikube registry
