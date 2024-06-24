@@ -101,4 +101,21 @@ specifications for the routes implemented are parsed:
 - If running from Minikube: http://config-service/swagger/index.html
 - If running locally: http://localhost:8080/swagger/index.html
 
+### Testing
+
+Run the unit tests suite
+```shell
+make test
+```
+
+Run the unit tests suite while generating a coverage report
+```shell
+make test-cov
+```
+
+Render the test coverage report as HTML
+```shell
+make show-cov
+```
+
 [Back to top](#config-service-api)
