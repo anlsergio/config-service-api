@@ -21,3 +21,16 @@ spec:
           env:
             - name: SERVE_PORT
               value: "80"
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 80
+            initialDelaySeconds: 3
+            periodSeconds: 3
+            terminationGracePeriodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: 80
+            initialDelaySeconds: 10
+            periodSeconds: 3

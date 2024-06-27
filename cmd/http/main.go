@@ -35,10 +35,14 @@ func main() {
 
 	// set the config controller handlers injecting the dependency
 	// in the router
+	r := mux.NewRouter()
+
+	// Health Check controller set up
+	controller.NewHealthCheck().SetRouter(r)
+
+	// Config resource controller set up
 	svc := service.NewConfig(repository.NewInMemoryConfig())
 	configController := controller.NewConfig(svc)
-
-	r := mux.NewRouter()
 	configController.SetRouter(r)
 
 	// Set the Swagger endpoint to render the OpenAPI specs.
