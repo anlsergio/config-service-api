@@ -158,6 +158,14 @@ func TestInMemoryConfig_Delete(t *testing.T) {
 
 func TestInMemoryConfig_Search(t *testing.T) {
 	customData := test.GenerateInMemoryTestData(t)
+
+	// add a new test stub for testing out a possible panic edge case
+	nonStringValueMetadata := "Non-string value metadata"
+	customData[nonStringValueMetadata] = domain.Config{
+		Name:     nonStringValueMetadata,
+		Metadata: []byte(`{"dont-panic": 8}`),
+	}
+
 	repo := repository.NewInMemoryConfig(repository.WithCustomData(customData))
 
 	tests := []struct {
@@ -201,6 +209,12 @@ func TestInMemoryConfig_Search(t *testing.T) {
 				"enabled":     "false",
 			},
 			wantConfigsLen: 0,
+		},
+		{
+			name: "non-string value metadata doesn't cause panic",
+			query: map[string]string{
+				"dont-panic": "8",
+			},
 		},
 	}
 

@@ -178,7 +178,12 @@ out:
 			foundValue := c.MetadataValue(k)
 			// if any of the key/value combinations
 			// doesn't find a match, skip adding the corresponding config.
-			if foundValue == nil || foundValue.(string) != v {
+			if foundValue == nil {
+				continue out
+			}
+
+			stringFoundValue, ok := foundValue.(string)
+			if !ok || stringFoundValue != v {
 				continue out
 			}
 		}
