@@ -96,6 +96,11 @@ func (c Config) create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if err := requestBody.Validate(); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
 	config, err := requestBody.ToDomainConfig()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -171,6 +176,11 @@ func (c Config) update(w http.ResponseWriter, r *http.Request) {
 
 	var requestBody dto.Metadata
 	if err := json.NewDecoder(r.Body).Decode(&requestBody); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	if err := requestBody.Validate(); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}

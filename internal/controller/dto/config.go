@@ -2,8 +2,14 @@ package dto
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/hellofreshdevtests/HFtest-platform-anlsergio/internal/domain"
+)
+
+var (
+	// ErrFailedValidation is used when the validation check has failed.
+	ErrFailedValidation = errors.New("failed validation")
 )
 
 // Config is the data transfer object for the config controller request and response.
@@ -12,7 +18,21 @@ type Config struct {
 	Name string `json:"name,omitempty"`
 	// Metadata is the arbitrary key value pairs of metadata
 	// that compose a config.
-	Metadata map[string]any `json:"metadata"`
+	Metadata Metadata `json:"metadata"`
+}
+
+// Validate returns an error ErrFailedValidation if Config
+// doesn't pass validation of the schema.
+func (c Config) Validate() (err error) {
+	if c.Name == "" {
+		err = errors.Join(ErrFailedValidation, errors.New("name is required"))
+	}
+
+	if metadataErr := c.Metadata.Validate(); metadataErr != nil {
+		err = errors.Join(ErrFailedValidation, metadataErr)
+	}
+
+	return err
 }
 
 // ToDomainConfig converts the dto.Config into a domain.Config.

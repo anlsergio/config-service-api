@@ -33,3 +33,78 @@ func TestFromDomainConfig(t *testing.T) {
 	assert.Equal(t, "config name", dtoConfig.Name)
 	assert.Equal(t, "bar", dtoConfig.Metadata["foo"])
 }
+
+func TestConfig_Validate(t *testing.T) {
+	tests := []struct {
+		name    string
+		config  dto.Config
+		wantErr error
+	}{
+		{
+			name: "valid config",
+			config: dto.Config{
+				Name:     "config name",
+				Metadata: map[string]any{"foo": "bar"},
+			},
+			wantErr: nil,
+		},
+		{
+			name: "valid config with nested metadata",
+			config: dto.Config{
+				Name: "config name",
+				Metadata: map[string]any{
+					"nested": map[string]any{
+						"foo": "bar",
+					},
+				},
+			},
+			wantErr: nil,
+		},
+		{
+			name: "missing config name",
+			config: dto.Config{
+				Name:     "",
+				Metadata: map[string]any{"foo": "bar"},
+			},
+			wantErr: dto.ErrFailedValidation,
+		},
+		{
+			name: "invalid metadata",
+			config: dto.Config{
+				Name:     "config name",
+				Metadata: map[string]any{"foo": 8},
+			},
+			wantErr: dto.ErrFailedValidation,
+		},
+		{
+			name: "nested non-string metadata value",
+			config: dto.Config{
+				Name: "config name",
+				Metadata: map[string]any{
+					"nest": map[string]any{
+						"foo": 8,
+					},
+				},
+			},
+			wantErr: dto.ErrFailedValidation,
+		},
+		{
+			name: "nested non-string metadata key",
+			config: dto.Config{
+				Name: "config name",
+				Metadata: map[string]any{
+					"nest": map[any]any{
+						8: "hey",
+					},
+				},
+			},
+			wantErr: dto.ErrFailedValidation,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := tt.config.Validate()
+			assert.ErrorIs(t, err, tt.wantErr)
+		})
+	}
+}

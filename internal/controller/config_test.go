@@ -92,7 +92,7 @@ func TestConfig(t *testing.T) {
 				{
 					"name": "burger-nutrition",
 					"metadata": {
-					  "calories": 230,
+					  "calories": "230",
 					  "fats": {
 						"saturated-fat": "0g",
 						"trans-fat": "1g"
@@ -131,7 +131,7 @@ func TestConfig(t *testing.T) {
 				{
 					"name": "burger-nutrition",
 					"metadata": {
-					  "calories": 230,
+					  "calories": "230",
 					  "fats": {
 						"saturated-fat": "0g",
 						"trans-fat": "1g"
@@ -162,7 +162,7 @@ func TestConfig(t *testing.T) {
 				{
 					"name": "burger-nutrition",
 					"metadata": {
-					  "calories": 230,
+					  "calories": "230",
 					  "fats": {
 						"saturated-fat": "0g",
 						"trans-fat": "1g"
@@ -230,7 +230,7 @@ func TestConfig(t *testing.T) {
 		fineRequestBody := `
 			{
 				"metadata": {
-				  "calories": 230,
+				  "calories": "230",
 				  "fats": {
 					"saturated-fat": "0g",
 					"trans-fat": "1g"
@@ -242,7 +242,7 @@ func TestConfig(t *testing.T) {
 		invalidRequestBody := `
 			{
 				"metadata": {
-				  "calories": 230,
+				  "calories": "230",
 				  "fats": {
 					"saturated-fat": "0g",
 					"trans-fat": "1g"
