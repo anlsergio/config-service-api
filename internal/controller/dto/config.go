@@ -28,8 +28,10 @@ func (c Config) Validate() (err error) {
 		err = errors.Join(ErrFailedValidation, errors.New("name is required"))
 	}
 
-	if metadataErr := c.Metadata.Validate(); metadataErr != nil {
-		err = errors.Join(ErrFailedValidation, metadataErr)
+	if c.Metadata != nil {
+		if metadataErr := c.Metadata.Validate(); metadataErr != nil {
+			err = errors.Join(ErrFailedValidation, metadataErr)
+		}
 	}
 
 	return err
